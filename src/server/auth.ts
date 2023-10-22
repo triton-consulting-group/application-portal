@@ -1,4 +1,5 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { eq } from "drizzle-orm";
 import {
     getServerSession,
     type DefaultSession,
@@ -7,7 +8,7 @@ import {
 import GoogleProvider from "next-auth/providers/google";
 import { env } from "~/env.mjs";
 import { db } from "~/server/db";
-import { mysqlTable } from "~/server/db/schema";
+import { Role, mysqlTable, sessions, users } from "~/server/db/schema";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -19,15 +20,13 @@ declare module "next-auth" {
     interface Session extends DefaultSession {
         user: {
             id: string;
-            // ...other properties
-            // role: UserRole;
+            role: Role;
         } & DefaultSession["user"];
     }
 
-    // interface User {
-    //   // ...other properties
-    //   // role: UserRole;
-    // }
+    interface User {
+       role: Role;
+    }
 }
 
 /**
@@ -42,10 +41,25 @@ export const authOptions: NextAuthOptions = {
             user: {
                 ...session.user,
                 id: user.id,
+                role: user.role
             },
         }),
     },
-    adapter: DrizzleAdapter(db, mysqlTable),
+    adapter: {
+        ...DrizzleAdapter(db, mysqlTable),
+        // https://github.com/nextauthjs/next-auth/pull/8561
+        async getSessionAndUser(data) {
+            const sessionAndUsers = await db
+                .select({
+                    session: sessions,
+                    user: users
+                })
+                .from(sessions)
+                .where(eq(sessions.sessionToken, data))
+                .innerJoin(users, eq(users.id, sessions.userId));
+            return sessionAndUsers[0] ?? null;
+        }
+    },
     providers: [
         GoogleProvider({
             clientId: env.GOOGLE_CLIENT_ID,
