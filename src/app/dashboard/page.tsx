@@ -2,6 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "src/components/ui/tabs
 import { redirect } from "next/navigation";
 import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
+import { api } from "~/trpc/server";
+import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
@@ -12,6 +14,8 @@ export default async function Dashboard() {
         redirect("/");
     }
 
+    const cycles = await api.recruitmentCycle.recruitmentCycleList.query();
+
     return (
         <main className="flex flex-col px-12 py-8">
             <h1 className="text-3xl">Dashboard</h1>
@@ -21,10 +25,10 @@ export default async function Dashboard() {
                     <TabsTrigger value="manage">Management</TabsTrigger>
                 </TabsList>
                 <TabsContent value="applications">
-                    
+                    <RecruitmentCycleCombobox createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>                       
                 </TabsContent>
                 <TabsContent value="manage">
-
+                    <RecruitmentCycleCombobox createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>                       
                 </TabsContent>
             </Tabs>
         </main>

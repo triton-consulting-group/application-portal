@@ -100,7 +100,7 @@ export const verificationTokens = mysqlTable(
 export const recruitmentCycles = mysqlTable(
     "recruitmentCycle",
     {
-        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         displayName: varchar("displayName", { length: 255 }).notNull(),
         startTime: datetime("startTime", { mode: "date" }).notNull(),
         endTime: datetime("endTime", { mode: "date" }).notNull(),
@@ -115,10 +115,10 @@ export const recruitmentCyclesRelations = relations(recruitmentCycles, ({ many }
 export const applicationQuestions = mysqlTable(
     "applicationQuestion",
     {
-        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         cycleId: varchar("id", { length: 255 }).notNull(),
         displayName: varchar("displayName", { length: 255 }).notNull(),
-        description: varchar("description", { length: 255 }).notNull(), 
+        description: varchar("description", { length: 255 }).notNull(),
         type: mysqlEnum("type", [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE])
             .notNull(),
         required: boolean("required").notNull(),
@@ -139,9 +139,9 @@ export const applicationQuestionsRelations = relations(applicationQuestions, ({ 
 export const applicationResponses = mysqlTable(
     "applicationResponse",
     {
-        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         questionId: varchar("questionId", { length: 255 }).notNull(),
-        value: varchar("value", {length: 15000 }).notNull(),
+        value: varchar("value", { length: 15000 }).notNull(),
     }
 );
 
@@ -155,9 +155,9 @@ export const applicationResponsesRelations = relations(applicationResponses, ({ 
 export const applications = mysqlTable(
     "application",
     {
-        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         userId: varchar("userId", { length: 255 }).notNull(),
-        cycleId: varchar("cycleId", {length: 255 }).notNull(),
+        cycleId: varchar("cycleId", { length: 255 }).notNull(),
     }
 );
 
