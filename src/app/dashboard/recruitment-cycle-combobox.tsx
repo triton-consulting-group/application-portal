@@ -19,13 +19,13 @@ import { Button } from "src/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import CreateRecruitmentCycle from "./create-recruitment-cycle";
 import { z } from "zod";
-import { createInsertSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { recruitmentCycles } from "~/server/db/schema";
 import { useHydrateAtoms } from 'jotai/utils'
 import { recruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
 
-const recruitmentCycleSchema = createInsertSchema(recruitmentCycles);
+const recruitmentCycleSchema = createSelectSchema(recruitmentCycles);
 
 export default function RecruitmentCycleCombobox({
     createOption, recruitmentCycles
@@ -33,10 +33,10 @@ export default function RecruitmentCycleCombobox({
     createOption: boolean,
     recruitmentCycles: z.infer<typeof recruitmentCycleSchema>[]
 }) {
-    const [open, setOpen] = React.useState(false);
-    const [value, setValue] = React.useState("");
     useHydrateAtoms([[recruitmentCycleAtom, recruitmentCycles]]);
     const [cycles] = useAtom(recruitmentCycleAtom);
+    const [open, setOpen] = React.useState(false);
+    const [value, setValue] = React.useState<string>(cycles?.[0]?.id || "");
 
     function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {

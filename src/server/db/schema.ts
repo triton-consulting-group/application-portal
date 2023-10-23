@@ -100,7 +100,7 @@ export const verificationTokens = mysqlTable(
 export const recruitmentCycles = mysqlTable(
     "recruitmentCycle",
     {
-        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+        id: varchar("id", { length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
         displayName: varchar("displayName", { length: 255 }).notNull(),
         startTime: datetime("startTime", { mode: "date" }).notNull(),
         endTime: datetime("endTime", { mode: "date" }).notNull(),
