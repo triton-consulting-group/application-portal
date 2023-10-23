@@ -181,11 +181,11 @@ const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
 });
 
 /**
- * Member only procedure
+ * Admin only procedure
  *
  * If you want a query or mutation to ONLY be accessible to members or admins, use this. It verifies
  * the session is valid and guarantees `ctx.session.user` is not null. Also guarantees the user role is 
- * ADMIN or MEMBER
+ * ADMIN 
  *
  * @see https://trpc.io/docs/procedures
  */
