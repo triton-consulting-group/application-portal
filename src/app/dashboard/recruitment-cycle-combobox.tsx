@@ -18,15 +18,30 @@ import React from "react";
 import { Button } from "src/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import CreateRecruitmentCycle from "./create-recruitment-cycle";
+import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
+import { recruitmentCycles } from "~/server/db/schema";
+import { useHydrateAtoms } from 'jotai/utils'
+import { recruitmentCycleAtom } from "./atoms";
+import { useAtom } from "jotai";
 
-export default function RecruitmentCycleCombobox(props: { createOption: boolean, recruitmentCycles: { id: string, displayName: string, startTime: Date, endTime: Date }[] }) {
+const recruitmentCycleSchema = createInsertSchema(recruitmentCycles);
+
+export default function RecruitmentCycleCombobox({
+    createOption, recruitmentCycles
+}: {
+    createOption: boolean,
+    recruitmentCycles: z.infer<typeof recruitmentCycleSchema>[]
+}) {
     const [open, setOpen] = React.useState(false);
     const [value, setValue] = React.useState("");
+    useHydrateAtoms([[recruitmentCycleAtom, recruitmentCycles]]);
+    const [cycles] = useAtom(recruitmentCycleAtom);
 
-    function CreateNew({createOption}: {createOption: boolean}) {
+    function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {
             return null;
-        } 
+        }
 
         const [open, setOpen] = React.useState<boolean>(false);
 
@@ -50,20 +65,20 @@ export default function RecruitmentCycleCombobox(props: { createOption: boolean,
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-[200px] justify-between"
+                    className="w-[240px] justify-between"
                 >
                     {value
-                        ? props.recruitmentCycles.find((cycle) => cycle.id === value)?.displayName
+                        ? cycles.find((cycle) => cycle.id === value)?.displayName
                         : "Select recruitment cycle..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className="w-[240px] p-0">
                 <Command>
                     <CommandInput placeholder="Search recruitment cycle..." />
                     <CommandEmpty>No recruitment cycle found.</CommandEmpty>
                     <CommandGroup>
-                        {props.recruitmentCycles.map((cycle) => (
+                        {cycles.map((cycle) => (
                             <CommandItem
                                 key={cycle.id}
                                 value={cycle.id}
@@ -81,7 +96,7 @@ export default function RecruitmentCycleCombobox(props: { createOption: boolean,
                                 {cycle.displayName}
                             </CommandItem>
                         ))}
-                        <CreateNew createOption={props.createOption}></CreateNew>
+                        <CreateNew createOption={createOption}></CreateNew>
                     </CommandGroup>
                 </Command>
             </PopoverContent>

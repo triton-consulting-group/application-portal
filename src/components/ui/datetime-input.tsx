@@ -1,5 +1,3 @@
-"use client";
-
 import React, { ChangeEvent } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover"
 import { Button } from "./button"
@@ -9,13 +7,18 @@ import { Calendar as CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { Input } from "./input"
 import { Label } from "./label"
-import { ControllerRenderProps } from "react-hook-form"
 
-export default function DateTimeInput(props: { field: ControllerRenderProps<any>}) {
+export default function DateTimeInput({
+    onChange,
+    value
+}: {
+    onChange: (...event: any) => void,
+    value: Date
+}) {
     const [time, setTime] = React.useState<string>();
 
     const changeTime = (e: ChangeEvent<HTMLInputElement>): void => {
-        const date: Date = props.field.value;
+        const date: Date = value;
         const [hours, minutes] = e.target.value.split(":");
         if (!hours || !minutes) {
             throw new Error("Invalid time")
@@ -24,7 +27,7 @@ export default function DateTimeInput(props: { field: ControllerRenderProps<any>
         date.setMinutes(parseInt(minutes));
 
         setTime(e.target.value);
-        props.field.onChange(date);
+        onChange(date);
     }
 
     const changeDate = (date: Date | undefined): void => {
@@ -43,7 +46,7 @@ export default function DateTimeInput(props: { field: ControllerRenderProps<any>
             setTime("");
         }
 
-        props.field.onChange(date);
+        onChange(date);
     }
 
     return (
@@ -53,25 +56,25 @@ export default function DateTimeInput(props: { field: ControllerRenderProps<any>
                     variant={"outline"}
                     className={cn(
                         "w-[280px] justify-start text-left font-normal",
-                        !props.field.value && "text-muted-foreground"
+                        !value && "text-muted-foreground"
                     )}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {props.field.value ? format(props.field.value, "Pp") : <span>Pick a date</span>}
+                    {value ? format(value, "Pp") : <span>Pick a date</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
                 <Calendar
                     mode="single"
-                    selected={props.field.value}
+                    selected={value}
                     onSelect={changeDate}
-                    disabled={(date) => date < new Date() }
+                    disabled={(date) => date < new Date()}
                     required
                     initialFocus
                 />
                 <Label className="ml-4 mb-3">Pick a time</Label>
-                <Input 
-                    type="time" 
+                <Input
+                    type="time"
                     value={time}
                     required
                     onChange={changeTime}

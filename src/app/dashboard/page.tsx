@@ -13,7 +13,6 @@ export default async function Dashboard() {
     } else if (session.user.role === Role.APPLICANT) {
         redirect("/");
     }
-
     const cycles = await api.recruitmentCycle.recruitmentCycleList.query();
 
     return (

@@ -1,5 +1,3 @@
-"use client";
-
 import { createInsertSchema } from "drizzle-zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,18 +7,28 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "~/components/ui/input";
 import { recruitmentCycles } from "~/server/db/schema";
 import { api } from "~/trpc/react";
+import { recruitmentCycleAtom } from "./atoms";
+import { useAtom } from "jotai";
 
-export default function CreateRecruitmentCycle(props: {setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>}) {
+export default function CreateRecruitmentCycle({ 
+    setDialogOpen
+}: {
+    setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
+}) {
     const formSchema = createInsertSchema(recruitmentCycles);
     const form = useForm<z.infer<typeof formSchema>>();
     const createCycle = api.recruitmentCycle.recruitmentCycleCreate.useMutation();
+    const getCycles = api.recruitmentCycle.recruitmentCycleList.useQuery(undefined, {enabled: false});
+
+    const [cycles, setCycles] = useAtom(recruitmentCycleAtom);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (values.endTime <= values.startTime) {
             return;
         }
         await createCycle.mutateAsync(values);
-        props.setDialogOpen(false);
+        setDialogOpen(false);
+        setCycles((await getCycles.refetch()).data || []);
     }
 
     return (
@@ -49,7 +57,7 @@ export default function CreateRecruitmentCycle(props: {setDialogOpen: React.Disp
                         <FormItem className="flex flex-col">
                             <FormLabel>Start Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput field={field}></DateTimeInput>
+                                <DateTimeInput onChange={field.onChange} value={field.value}></DateTimeInput>
                             </FormControl>
                             <FormDescription>
                                 This is the time that the recruitment cycle applications will
@@ -66,7 +74,7 @@ export default function CreateRecruitmentCycle(props: {setDialogOpen: React.Disp
                         <FormItem className="flex flex-col">
                             <FormLabel>End Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput field={field}></DateTimeInput>
+                                <DateTimeInput onChange={field.onChange} value={field.value}></DateTimeInput>
                             </FormControl>
                             <FormDescription>
                                 This is the time that the recruitment cycle applications will

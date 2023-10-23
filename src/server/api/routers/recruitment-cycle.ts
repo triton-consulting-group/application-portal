@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { desc } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import {
     createTRPCRouter,
@@ -9,7 +10,7 @@ import { recruitmentCycles } from "~/server/db/schema";
 export const recruitmentCycleRouter = createTRPCRouter({
     recruitmentCycleList: publicProcedure
         .query(({ ctx }) => {
-            return ctx.db.select().from(recruitmentCycles)
+            return ctx.db.select().from(recruitmentCycles).orderBy(desc(recruitmentCycles.endTime));
         }),
     recruitmentCycleCreate: publicProcedure
         .input(createInsertSchema(recruitmentCycles))

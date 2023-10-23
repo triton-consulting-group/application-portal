@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/theme-provider";
+import JotaiProvider from "./jotai-provider";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -25,14 +26,16 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`font-sans ${inter.variable}`}>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    <TRPCReactProvider headers={headers()}>{children}</TRPCReactProvider>
-                </ThemeProvider>
+                <JotaiProvider>
+                    <ThemeProvider
+                        attribute="class"
+                        defaultTheme="system"
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        <TRPCReactProvider headers={headers()}>{children}</TRPCReactProvider>
+                    </ThemeProvider>
+                </JotaiProvider>
             </body>
         </html>
     );
