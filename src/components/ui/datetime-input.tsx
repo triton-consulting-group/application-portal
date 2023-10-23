@@ -15,7 +15,7 @@ export default function DateTimeInput({
     onChange: (...event: any) => void,
     value: Date
 }) {
-    const [time, setTime] = React.useState<string>();
+    const [time, setTime] = React.useState<string>("");
 
     const changeTime = (e: ChangeEvent<HTMLInputElement>): void => {
         const date: Date = value;

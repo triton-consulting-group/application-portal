@@ -10,15 +10,19 @@ import { api } from "~/trpc/react";
 import { recruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
 
-export default function CreateRecruitmentCycle({ 
+export default function CreateRecruitmentCycle({
     setDialogOpen
 }: {
     setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 }) {
     const formSchema = createInsertSchema(recruitmentCycles);
-    const form = useForm<z.infer<typeof formSchema>>();
+    const form = useForm<z.infer<typeof formSchema>>({
+        defaultValues: {
+            displayName: "",
+        }
+    });
     const createCycle = api.recruitmentCycle.recruitmentCycleCreate.useMutation();
-    const getCycles = api.recruitmentCycle.recruitmentCycleList.useQuery(undefined, {enabled: false});
+    const getCycles = api.recruitmentCycle.recruitmentCycleList.useQuery(undefined, { enabled: false });
 
     const [cycles, setCycles] = useAtom(recruitmentCycleAtom);
 
