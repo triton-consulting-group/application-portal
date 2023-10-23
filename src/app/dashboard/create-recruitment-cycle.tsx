@@ -10,16 +10,17 @@ import { Input } from "~/components/ui/input";
 import { recruitmentCycles } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 
-export default function CreateRecruitmentCycle() {
+export default function CreateRecruitmentCycle(props: {setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>}) {
     const formSchema = createInsertSchema(recruitmentCycles);
     const form = useForm<z.infer<typeof formSchema>>();
-    const createCycle = api.recruitmentCycle.recruitmentCycleCreate.useMutation(); 
+    const createCycle = api.recruitmentCycle.recruitmentCycleCreate.useMutation();
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (values.endTime <= values.startTime) {
-            return; 
+            return;
         }
         await createCycle.mutateAsync(values);
+        props.setDialogOpen(false);
     }
 
     return (

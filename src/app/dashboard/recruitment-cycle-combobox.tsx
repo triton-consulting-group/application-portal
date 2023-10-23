@@ -28,15 +28,15 @@ export default function RecruitmentCycleCombobox(props: { createOption: boolean,
             return null;
         } 
 
+        const [open, setOpen] = React.useState<boolean>(false);
+
         return (
-            <CommandItem 
-                className="cursor-pointer"
-            >
-                <Dialog>
+            <CommandItem className="cursor-pointer">
+                <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger>Create New +</DialogTrigger>
                     <DialogContent>
                         <DialogTitle>Create New Recruitment Cycle</DialogTitle>
-                        <CreateRecruitmentCycle></CreateRecruitmentCycle>
+                        <CreateRecruitmentCycle setDialogOpen={setOpen}></CreateRecruitmentCycle>
                     </DialogContent>
                 </Dialog>
             </CommandItem>
