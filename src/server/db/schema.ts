@@ -7,9 +7,13 @@ import {
     text,
     timestamp,
     varchar,
-    mysqlEnum
+    mysqlEnum,
+    datetime,
+    json,
+    boolean
 } from "drizzle-orm/mysql-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { FieldType, Role } from "./types";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -18,12 +22,6 @@ import { type AdapterAccount } from "next-auth/adapters";
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const mysqlTable = mysqlTableCreator((name) => `tcg-application-portal_${name}`);
-
-export enum Role {
-    APPLICANT = "applicant",
-    MEMBER = "member",
-    ADMIN = "admin"
-}
 
 export const users = mysqlTable("user", {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -39,6 +37,7 @@ export const users = mysqlTable("user", {
 
 export const usersRelations = relations(users, ({ many }) => ({
     accounts: many(accounts),
+    applications: many(applications)
 }));
 
 export const accounts = mysqlTable(
@@ -97,3 +96,79 @@ export const verificationTokens = mysqlTable(
         compoundKey: primaryKey(vt.identifier, vt.token),
     })
 );
+
+export const recruitmentCycles = mysqlTable(
+    "recruitmentCycle",
+    {
+        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        displayName: varchar("displayName", { length: 255 }).notNull(),
+        startTime: datetime("startTime", { mode: "date" }).notNull(),
+        endTime: datetime("endTime", { mode: "date" }).notNull(),
+    }
+);
+
+export const recruitmentCyclesRelations = relations(recruitmentCycles, ({ many }) => ({
+    applicationQuestions: many(applicationQuestions),
+    applications: many(applications)
+}));
+
+export const applicationQuestions = mysqlTable(
+    "applicationQuestion",
+    {
+        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        cycleId: varchar("id", { length: 255 }).notNull(),
+        displayName: varchar("displayName", { length: 255 }).notNull(),
+        description: varchar("description", { length: 255 }).notNull(), 
+        type: mysqlEnum("type", [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE])
+            .notNull(),
+        required: boolean("required").notNull(),
+        options: json("options").$type<string[]>(),
+        maxLength: int("maxLength"),
+        minLength: int("minLength"),
+    }
+);
+
+export const applicationQuestionsRelations = relations(applicationQuestions, ({ one, many }) => ({
+    recruitmentCycle: one(recruitmentCycles, {
+        fields: [applicationQuestions.cycleId],
+        references: [recruitmentCycles.id]
+    }),
+    applicationResponse: many(applicationResponses)
+}));
+
+export const applicationResponses = mysqlTable(
+    "applicationResponse",
+    {
+        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        questionId: varchar("questionId", { length: 255 }).notNull(),
+        value: varchar("value", {length: 15000 }).notNull(),
+    }
+);
+
+export const applicationResponsesRelations = relations(applicationResponses, ({ one }) => ({
+    applicationQuestion: one(applicationQuestions, {
+        fields: [applicationResponses.questionId],
+        references: [applicationQuestions.id]
+    }),
+}));
+
+export const applications = mysqlTable(
+    "application",
+    {
+        id: varchar("id", { length: 255 }).notNull().primaryKey(),
+        userId: varchar("userId", { length: 255 }).notNull(),
+        cycleId: varchar("cycleId", {length: 255 }).notNull(),
+    }
+);
+
+export const applicationsRelations = relations(applications, ({ one }) => ({
+    user: one(users, {
+        fields: [applications.userId],
+        references: [users.id]
+    }),
+    recruitmentCycle: one(recruitmentCycles, {
+        fields: [applications.cycleId],
+        references: [recruitmentCycles.id]
+    })
+}));
+
