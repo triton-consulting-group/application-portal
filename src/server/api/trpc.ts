@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { Role } from "../db/types";
 
 /**
  * 1. CONTEXT
@@ -24,7 +25,7 @@ import { db } from "~/server/db";
  */
 
 interface CreateContextOptions {
-  headers: Headers;
+    headers: Headers;
 }
 
 /**
@@ -38,13 +39,13 @@ interface CreateContextOptions {
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 export const createInnerTRPCContext = async (opts: CreateContextOptions) => {
-  const session = await getServerAuthSession();
+    const session = await getServerAuthSession();
 
-  return {
-    session,
-    headers: opts.headers,
-    db,
-  };
+    return {
+        session,
+        headers: opts.headers,
+        db,
+    };
 };
 
 /**
@@ -54,11 +55,11 @@ export const createInnerTRPCContext = async (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: { req: NextRequest }) => {
-  // Fetch stuff that depends on the request
+    // Fetch stuff that depends on the request
 
-  return await createInnerTRPCContext({
-    headers: opts.req.headers,
-  });
+    return await createInnerTRPCContext({
+        headers: opts.req.headers,
+    });
 };
 
 /**
@@ -70,17 +71,17 @@ export const createTRPCContext = async (opts: { req: NextRequest }) => {
  */
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+                zodError:
+                    error.cause instanceof ZodError ? error.cause.flatten() : null,
+            },
+        };
+    },
 });
 
 /**
@@ -108,23 +109,85 @@ export const publicProcedure = t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-  return next({
-    ctx: {
-      // infers the `session` as non-nullable
-      session: { ...ctx.session, user: ctx.session.user },
-    },
-  });
+    if (!ctx.session || !ctx.session.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { ...ctx.session, user: ctx.session.user },
+        },
+    });
 });
 
 /**
- * Protected (authenticated) procedure
+ * Authenticated procedure
  *
  * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
  * the session is valid and guarantees `ctx.session.user` is not null.
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const authenticatedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+/** Reusable middleware that enforces users are members / admins before running the procedure. */
+const enforceUserIsMember = t.middleware(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const userRole = ctx.session.user.role;
+
+    if (userRole !== Role.MEMBER && userRole !== Role.ADMIN) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    return next({
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { ...ctx.session, user: ctx.session.user },
+        },
+    });
+});
+
+/**
+ * Member only procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to members or admins, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null. Also guarantees the user role is 
+ * ADMIN or MEMBER
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const memberProcedure = t.procedure.use(enforceUserIsMember);
+
+/** Reusable middleware that enforces users are admins before running the procedure. */
+const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const userRole = ctx.session.user.role;
+    if (userRole !== Role.ADMIN) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    return next({
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { ...ctx.session, user: ctx.session.user },
+        },
+    });
+});
+
+/**
+ * Member only procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to members or admins, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null. Also guarantees the user role is 
+ * ADMIN or MEMBER
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
+

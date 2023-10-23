@@ -21,8 +21,8 @@ export default function CreateRecruitmentCycle({
             displayName: "",
         }
     });
-    const createCycle = api.recruitmentCycle.recruitmentCycleCreate.useMutation();
-    const getCycles = api.recruitmentCycle.recruitmentCycleList.useQuery(undefined, { enabled: false });
+    const createCycle = api.recruitmentCycle.create.useMutation();
+    const getCycles = api.recruitmentCycle.getAll.useQuery(undefined, { enabled: false });
 
     const [cycles, setCycles] = useAtom(recruitmentCycleAtom);
 

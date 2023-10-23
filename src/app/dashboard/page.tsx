@@ -13,7 +13,7 @@ export default async function Dashboard() {
     } else if (session.user.role === Role.APPLICANT) {
         redirect("/");
     }
-    const cycles = await api.recruitmentCycle.recruitmentCycleList.query();
+    const cycles = await api.recruitmentCycle.getAll.query();
 
     return (
         <main className="flex flex-col px-12 py-8">

@@ -1,18 +1,30 @@
 import { TRPCError } from "@trpc/server";
-import { desc } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import {
+    adminProcedure,
     createTRPCRouter,
+    memberProcedure,
     publicProcedure,
 } from "~/server/api/trpc";
 import { recruitmentCycles } from "~/server/db/schema";
 
 export const recruitmentCycleRouter = createTRPCRouter({
-    recruitmentCycleList: publicProcedure
+    getAll: memberProcedure
         .query(({ ctx }) => {
             return ctx.db.select().from(recruitmentCycles).orderBy(desc(recruitmentCycles.endTime));
         }),
-    recruitmentCycleCreate: publicProcedure
+    getActive: publicProcedure
+        .query(({ ctx }) => {
+            return ctx.db
+                .select()
+                .from(recruitmentCycles)
+                .where(
+                    sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
+                )
+                .limit(1);
+        }),
+    create: adminProcedure
         .input(createInsertSchema(recruitmentCycles))
         .mutation(async ({ ctx, input }) => {
             if (input.startTime >= input.endTime) {
