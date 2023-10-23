@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { createInsertSchema } from "drizzle-zod";
 import {
     createTRPCRouter,
@@ -13,6 +14,12 @@ export const recruitmentCycleRouter = createTRPCRouter({
     recruitmentCycleCreate: publicProcedure
         .input(createInsertSchema(recruitmentCycles))
         .mutation(async ({ ctx, input }) => {
+            if (input.startTime >= input.endTime) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Start time can not be after end time."
+                });
+            }
             const cycle = await ctx.db.insert(recruitmentCycles).values(input);
             return cycle;
         })

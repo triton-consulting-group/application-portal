@@ -25,10 +25,10 @@ export default async function Dashboard() {
                     <TabsTrigger value="manage">Management</TabsTrigger>
                 </TabsList>
                 <TabsContent value="applications">
-                    <RecruitmentCycleCombobox createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>                       
+                    <RecruitmentCycleCombobox createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
                 </TabsContent>
                 <TabsContent value="manage">
-                    <RecruitmentCycleCombobox createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>                       
+                    <RecruitmentCycleCombobox createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
                 </TabsContent>
             </Tabs>
         </main>
