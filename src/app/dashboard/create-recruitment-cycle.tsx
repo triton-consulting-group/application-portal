@@ -7,7 +7,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "~/components/ui/input";
 import { recruitmentCycles } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { recruitmentCycleAtom } from "./atoms";
+import { recruitmentCyclesAtom } from "./atoms";
 import { useAtom } from "jotai";
 
 export default function CreateRecruitmentCycle({
@@ -24,7 +24,7 @@ export default function CreateRecruitmentCycle({
     const createCycle = api.recruitmentCycle.create.useMutation();
     const getCycles = api.recruitmentCycle.getAll.useQuery(undefined, { enabled: false });
 
-    const [cycles, setCycles] = useAtom(recruitmentCycleAtom);
+    const [cycles, setCycles] = useAtom(recruitmentCyclesAtom);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (values.endTime <= values.startTime) {

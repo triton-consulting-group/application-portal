@@ -119,9 +119,12 @@ export const applicationQuestions = mysqlTable(
         cycleId: varchar("id", { length: 255 }).notNull(),
         displayName: varchar("displayName", { length: 255 }).notNull(),
         description: varchar("description", { length: 255 }).notNull(),
-        type: mysqlEnum("type", [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE])
+        type: mysqlEnum("type",
+            [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE, FieldType.DROPDOWN]
+        )
             .notNull(),
         required: boolean("required").notNull(),
+        placeholder: varchar("id", { length: 255 }),
         options: json("options").$type<string[]>(),
         maxLength: int("maxLength"),
         minLength: int("minLength"),

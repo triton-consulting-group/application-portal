@@ -22,21 +22,23 @@ import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { recruitmentCycles } from "~/server/db/schema";
 import { useHydrateAtoms } from 'jotai/utils'
-import { recruitmentCycleAtom } from "./atoms";
+import { recruitmentCyclesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
 
 const recruitmentCycleSchema = createSelectSchema(recruitmentCycles);
 
 export default function RecruitmentCycleCombobox({
-    createOption, recruitmentCycles
+    createOption, recruitmentCycles, className
 }: {
     createOption: boolean,
-    recruitmentCycles: z.infer<typeof recruitmentCycleSchema>[]
+    recruitmentCycles: z.infer<typeof recruitmentCycleSchema>[],
+    className: string
 }) {
-    useHydrateAtoms([[recruitmentCycleAtom, recruitmentCycles]]);
-    const [cycles] = useAtom(recruitmentCycleAtom);
+    useHydrateAtoms([[recruitmentCyclesAtom, recruitmentCycles]]);
+    const [cycles] = useAtom(recruitmentCyclesAtom);
     const [open, setOpen] = React.useState(false);
-    const [value, setValue] = React.useState<string>(cycles?.[0]?.id || "");
+    const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
+    setValue(cycles?.[0]?.id || "")
 
     function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {
@@ -60,7 +62,7 @@ export default function RecruitmentCycleCombobox({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+            <PopoverTrigger asChild className={className}>
                 <Button
                     variant="outline"
                     role="combobox"

@@ -8,6 +8,7 @@ export enum FieldType {
     BOOLEAN = "boolean",
     MULTIPLE_CHOICE = "multiple_choice",
     CHECKBOX = "checkbox",
-    STRING = "string"
+    STRING = "string",
+    DROPDOWN = "dropdown"
 }
 

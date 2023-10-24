@@ -4,6 +4,7 @@ import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
+import QuestionCard from "./question-card";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
@@ -13,6 +14,7 @@ export default async function Dashboard() {
     } else if (session.user.role === Role.APPLICANT) {
         redirect("/");
     }
+
     const cycles = await api.recruitmentCycle.getAll.query();
 
     return (
@@ -23,11 +25,12 @@ export default async function Dashboard() {
                     <TabsTrigger value="applications">Applications</TabsTrigger>
                     <TabsTrigger value="manage">Management</TabsTrigger>
                 </TabsList>
-                <TabsContent value="applications">
-                    <RecruitmentCycleCombobox createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
+                <TabsContent value="applications" className="flex flex-col">
+                    <RecruitmentCycleCombobox className="mb-6" createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
                 </TabsContent>
                 <TabsContent value="manage">
-                    <RecruitmentCycleCombobox createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
+                    <RecruitmentCycleCombobox className="mb-6" createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
+                    <QuestionCard></QuestionCard>
                 </TabsContent>
             </Tabs>
         </main>
