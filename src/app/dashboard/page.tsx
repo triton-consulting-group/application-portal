@@ -34,5 +34,5 @@ export default async function Dashboard() {
                 </TabsContent>
             </Tabs>
         </main>
-    )
+    );
 }

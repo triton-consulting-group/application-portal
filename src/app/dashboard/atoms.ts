@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod";
 import { atom } from "jotai";
-import { z } from "zod";
+import { type z } from "zod";
 import { applicationQuestions, recruitmentCycles } from "~/server/db/schema";
 
 const formSchema = createInsertSchema(recruitmentCycles);

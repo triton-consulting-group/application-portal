@@ -16,14 +16,14 @@ export const applicationQuestionRouter = createTRPCRouter({
             return ctx.db
                 .select()
                 .from(applicationQuestions)
-                .where(eq(applicationQuestions.cycleId, input))
+                .where(eq(applicationQuestions.cycleId, input));
         }),
     create: adminProcedure
         .input(createInsertSchema(applicationQuestions))
         .mutation(async ({ ctx, input }) => {
             const question = await ctx.db
                 .insert(applicationQuestions)
-                .values(input)
+                .values(input);
             return question;
         }),
     delete: adminProcedure
@@ -38,7 +38,7 @@ export const applicationQuestionRouter = createTRPCRouter({
                 throw new TRPCError({
                     message: "No id specified",
                     code: "BAD_REQUEST"
-                })
+                });
             }
 
             const updateResult = await ctx.db
@@ -50,7 +50,7 @@ export const applicationQuestionRouter = createTRPCRouter({
                 throw new TRPCError({
                     message: `Question with id ${input.id} not found`,
                     code: "NOT_FOUND"
-                })
+                });
             }
             
             return updateResult;

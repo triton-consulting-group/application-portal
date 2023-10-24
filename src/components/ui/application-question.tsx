@@ -1,5 +1,5 @@
 import { createInsertSchema } from "drizzle-zod";
-import { Control, ControllerRenderProps } from "react-hook-form";
+import { type Control, type ControllerRenderProps } from "react-hook-form";
 import { z } from "zod";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { applicationQuestions } from "~/server/db/schema";
@@ -24,7 +24,7 @@ export function ApplicationQuestion({
             if ((question.maxLength || 0) < 100) {
                 return (
                     <Input placeholder={question.placeholder || ""} {...field} />
-                )
+                );
             } else {
                 return (
                     <Textarea
@@ -32,7 +32,7 @@ export function ApplicationQuestion({
                         className="resize-none"
                         {...field}
                     />
-                )
+                );
             }
         } else if (question.type === FieldType.DROPDOWN) {
             return (
@@ -46,7 +46,7 @@ export function ApplicationQuestion({
                         ))}
                     </SelectContent>
                 </Select>
-            )
+            );
         } else if (question.type === FieldType.MULTIPLE_CHOICE) {
             return (
                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value}>
@@ -59,7 +59,7 @@ export function ApplicationQuestion({
                         </FormItem>
                     ))}
                 </RadioGroup>
-            )
+            );
         } else if (question.type === FieldType.CHECKBOX) {
             return (
                 <>
@@ -70,17 +70,17 @@ export function ApplicationQuestion({
                                     checked={field.value?.split(",,,")?.includes(o)}
                                     onCheckedChange={checked => {
                                         if (checked) {
-                                            console.log("val:")
-                                            console.log([...(field.value ? field.value.split(",,,") : []), o].join(",,,"))
-                                            field.onChange([...(field.value ? field.value.split(",,,") : []), o].join(",,,"))
+                                            console.log("val:");
+                                            console.log([...(field.value ? field.value.split(",,,") : []), o].join(",,,"));
+                                            field.onChange([...(field.value ? field.value.split(",,,") : []), o].join(",,,"));
                                         } else {
                                             field.onChange(field.value
                                                 .split(",,,")
                                                 .filter((v: string) => v !== o)
                                                 .join(",,,")
-                                            )
+                                            );
                                         }
-                                        console.log(field.value)
+                                        console.log(field.value);
                                     }}
                                 />
                             </FormControl>
@@ -88,7 +88,7 @@ export function ApplicationQuestion({
                         </FormItem>
                     ))}
                 </>
-            )
+            );
         } else if (question.type === FieldType.BOOLEAN) {
             return (
                 <RadioGroup>
@@ -105,7 +105,7 @@ export function ApplicationQuestion({
                         <FormLabel>No</FormLabel>
                     </FormItem>
                 </RadioGroup>
-            )
+            );
         }
     }
 
@@ -124,6 +124,6 @@ export function ApplicationQuestion({
                 </FormItem>
             )}
         />
-    )
+    );
 }
 

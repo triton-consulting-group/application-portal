@@ -1,12 +1,12 @@
-import React, { ChangeEvent } from "react"
-import { Popover, PopoverContent, PopoverTrigger } from "./popover"
-import { Button } from "./button"
-import { cn } from "src/lib/utils"
-import { Calendar } from "./calendar"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { Input } from "./input"
-import { Label } from "./label"
+import React, { type ChangeEvent } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Button } from "./button";
+import { cn } from "src/lib/utils";
+import { Calendar } from "./calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Input } from "./input";
+import { Label } from "./label";
 
 export default function DateTimeInput({
     onChange,
@@ -21,14 +21,14 @@ export default function DateTimeInput({
         const date: Date = value;
         const [hours, minutes] = e.target.value.split(":");
         if (!hours || !minutes) {
-            throw new Error("Invalid time")
+            throw new Error("Invalid time");
         }
         date.setHours(parseInt(hours));
         date.setMinutes(parseInt(minutes));
 
         setTime(e.target.value);
         onChange(date);
-    }
+    };
 
     const changeDate = (date: Date | undefined): void => {
         if (date) {
@@ -47,7 +47,7 @@ export default function DateTimeInput({
         }
 
         onChange(date);
-    }
+    };
 
     return (
         <Popover>
@@ -81,6 +81,6 @@ export default function DateTimeInput({
                 ></Input>
             </PopoverContent>
         </Popover>
-    )
+    );
 }
 

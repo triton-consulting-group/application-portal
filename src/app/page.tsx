@@ -15,7 +15,7 @@ export default async function Home() {
                 >
                     Start your application
                 </Link>
-            )
+            );
         } else if (props.role === Role.ADMIN || props.role === Role.MEMBER) {
             return (
                 <Link
@@ -24,7 +24,7 @@ export default async function Home() {
                 >
                     Dashboard
                 </Link>
-            )
+            );
         }
     }
 

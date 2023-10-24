@@ -25,7 +25,7 @@ export default function QuestionCard() {
         if (recruitmentCycle) {
             setQuestions((await getQuestions.refetch()).data || []);
         }
-    }
+    };
 
     React.useEffect(() => {
         fetchQuestions();
@@ -56,5 +56,5 @@ export default function QuestionCard() {
                 <CreateQuestion></CreateQuestion>
             </CardFooter>
         </Card>
-    )
+    );
 }

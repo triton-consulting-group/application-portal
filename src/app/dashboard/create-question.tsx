@@ -1,12 +1,11 @@
 import { useAtom } from "jotai";
-
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "src/components/ui/dialog"
+} from "src/components/ui/dialog";
 import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { Button } from "~/components/ui/button";
 import { useForm } from "react-hook-form";
@@ -14,7 +13,7 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationQuestions } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { KeyboardEvent, useState, useEffect } from "react";
+import { type KeyboardEvent, useState, useEffect } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -33,7 +32,7 @@ export default function CreateQuestion() {
     const questionTypes: { value: FieldType, name: string }[] = Object.values(FieldType).map(type => ({
         value: type,
         name: type.replaceAll("_", " ").split(" ").map(s => s[0]?.toUpperCase() + s.substring(1)).join(" ")
-    }))
+    }));
 
     const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 
@@ -55,7 +54,7 @@ export default function CreateQuestion() {
             e.preventDefault();
             const opts: string[] = form.getValues("options") || [];
             if (!opts.includes(option)) {
-                opts.push(option)
+                opts.push(option);
             }
             form.setValue("options", opts);
             setOption("");
@@ -65,7 +64,7 @@ export default function CreateQuestion() {
         form.setValue("options", (form.getValues("options") || []).filter(o => o !== option));
     }
 
-    const dummyForm = useForm<{[key: string]: string}>({ defaultValues: { "test": "" } });
+    const dummyForm = useForm<Record<string, string>>({ defaultValues: { "test": "" } });
     const createQuestion = api.applicationQuestion.create.useMutation();
     const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
     async function onSubmit(values: z.infer<typeof questionSchema>) {
@@ -87,7 +86,7 @@ export default function CreateQuestion() {
                 </DialogHeader>
                 <ScrollArea className="max-h-[100%] overflow-x-visible">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 px-2" autoComplete="off">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 px-2" autoComplete="off" id="form">
                             <FormField
                                 control={form.control}
                                 name="displayName"
@@ -253,14 +252,14 @@ export default function CreateQuestion() {
                             />
                         </form>
                     </Form>
-                </ScrollArea> 
+                </ScrollArea>
                 <div className="text-sm pl-2">
                     <h1 className="text-lg">Preview</h1>
                     {formValues.type && (
                         <Form {...dummyForm}>
                             <form>
                                 <ApplicationQuestion
-                                    question={{ id: "test",  ...formValues}}
+                                    question={{ id: "test", ...formValues }}
                                     control={dummyForm.control}
                                 ></ApplicationQuestion>
                             </form>
@@ -268,7 +267,10 @@ export default function CreateQuestion() {
                     )}
                     {!formValues.type && "Select a question type to see a preview"}
                 </div>
+                <div className="flex justify-end">
+                    <Button type="submit" form="form">Create</Button>
+                </div>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

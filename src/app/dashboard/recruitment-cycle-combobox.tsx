@@ -12,16 +12,16 @@ import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "src/components/ui/popover"
-import { cn } from "src/lib/utils"
+} from "src/components/ui/popover";
+import { cn } from "src/lib/utils";
 import React from "react";
-import { Button } from "src/components/ui/button"
+import { Button } from "src/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import CreateRecruitmentCycle from "./create-recruitment-cycle";
-import { z } from "zod";
+import { type z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { recruitmentCycles } from "~/server/db/schema";
-import { useHydrateAtoms } from 'jotai/utils'
+import { useHydrateAtoms } from 'jotai/utils';
 import { recruitmentCyclesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
 
@@ -38,7 +38,7 @@ export default function RecruitmentCycleCombobox({
     const [cycles] = useAtom(recruitmentCyclesAtom);
     const [open, setOpen] = React.useState(false);
     const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
-    setValue(cycles?.[0]?.id || "")
+    setValue(cycles?.[0]?.id || "");
 
     function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {
@@ -57,7 +57,7 @@ export default function RecruitmentCycleCombobox({
                     </DialogContent>
                 </Dialog>
             </CommandItem>
-        )
+        );
     }
 
     return (
@@ -85,8 +85,8 @@ export default function RecruitmentCycleCombobox({
                                 key={cycle.id}
                                 value={cycle.id}
                                 onSelect={(currentValue) => {
-                                    setValue(currentValue === value ? "" : currentValue)
-                                    setOpen(false)
+                                    setValue(currentValue === value ? "" : currentValue);
+                                    setOpen(false);
                                 }}
                             >
                                 <Check
@@ -103,6 +103,6 @@ export default function RecruitmentCycleCombobox({
                 </Command>
             </PopoverContent>
         </Popover>
-    )
+    );
 }
 

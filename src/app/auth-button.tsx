@@ -10,7 +10,7 @@ export default function AuthButton(props: { loggedIn: boolean }) {
             >
                 Sign Out
             </button>
-        )
+        );
     }
 
     return (
@@ -25,5 +25,5 @@ export default function AuthButton(props: { loggedIn: boolean }) {
             />
             Sign in with Google
         </button>
-    )
+    );
 }

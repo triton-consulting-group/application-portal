@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { type z } from "zod";
 import { Button } from "~/components/ui/button";
 import DateTimeInput from "~/components/ui/datetime-input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
@@ -91,5 +91,5 @@ export default function CreateRecruitmentCycle({
                 <Button type="submit">Create</Button>
             </form>
         </Form>
-    )
+    );
 }
