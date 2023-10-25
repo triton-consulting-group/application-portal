@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { type AdapterAccount } from "next-auth/adapters";
 import { FieldType, Role } from "./types";
+import { db } from ".";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -124,6 +125,7 @@ export const applicationQuestions = mysqlTable(
         )
             .notNull(),
         required: boolean("required").notNull(),
+        order: int("order"),
         placeholder: varchar("placeholder", { length: 255 }),
         options: json("options").$type<string[]>(),
         maxLength: int("maxLength"),

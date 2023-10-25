@@ -24,7 +24,8 @@ export default function QuestionCard() {
 
     const fetchQuestions = async () => {
         if (recruitmentCycle) {
-            setQuestions((await getQuestions.refetch()).data || []);
+            const questions = (await getQuestions.refetch()).data || [];
+            setQuestions(questions);
         }
     };
 
@@ -51,7 +52,7 @@ export default function QuestionCard() {
                 {!recruitmentCycle && "Select a recruitment cycle first"}
                 {!questions.length && "No questions have been created"}
                 {questions.map(q => (
-                    <div className="border-zinc-700 pt-2 flex flex-row items-center">
+                    <div className="border-zinc-700 pt-2 flex flex-row items-center" key={q.id}>
                         {editing && (
                             <Button variant="ghost" className="p-0 mr-3 ml-2" onClick={() => deleteQuestion(q.id ?? "")}>
                                 <Trash2 />
@@ -67,7 +68,7 @@ export default function QuestionCard() {
                     </div>
                 ))}
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between flex-wrap gap-y-4">
                 <Button>Preview Application</Button>
                 <CreateQuestion></CreateQuestion>
             </CardFooter>

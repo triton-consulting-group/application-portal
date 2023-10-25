@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import {
@@ -29,6 +29,15 @@ export const applicationQuestionRouter = createTRPCRouter({
                         code: "BAD_REQUEST"
                     });
                 }
+            }
+
+            if (!input.order) {
+                const biggestOrder = await (ctx.db
+                    .select({ maxOrder: sql<number | null>`MAX(${applicationQuestions.order})` })
+                    .from(applicationQuestions)
+                    .where(eq(applicationQuestions.cycleId, input.cycleId))
+                );
+                input.order = (biggestOrder[0]?.maxOrder ?? 0) + 1
             }
 
             const question = await ctx.db

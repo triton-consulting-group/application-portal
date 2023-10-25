@@ -14,6 +14,20 @@ export const selectedRecruitmentCycleAtom = atom<string>("");
 
 
 const questionSchema = createInsertSchema(applicationQuestions);
-export const applicationQuestionsAtom = atom<z.infer<typeof questionSchema>[]>([]);
+type ApplicationQuestion = z.infer<typeof questionSchema>;
+const applicationQuestionsPrimitiveAtom = atom<ApplicationQuestion[]>([]);
+export const applicationQuestionsAtom = atom<
+    ApplicationQuestion[],
+    [ApplicationQuestion[]],
+    void
+>(
+    (get) => get(applicationQuestionsPrimitiveAtom),
+    (get, set, update) => {
+        update.sort((a, b) => {
+            return (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER);
+        });
+        set(applicationQuestionsPrimitiveAtom, update);
+    }
+);
 
 
