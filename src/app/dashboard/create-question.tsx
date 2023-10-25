@@ -13,7 +13,7 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationQuestions } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { type KeyboardEvent, useState, useEffect } from "react";
+import { type KeyboardEvent, useState } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -68,7 +68,7 @@ export default function CreateQuestion() {
     const createQuestion = api.applicationQuestion.create.useMutation();
     const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
     async function onSubmit(values: z.infer<typeof questionSchema>) {
-        createQuestion.mutateAsync(values);
+        await createQuestion.mutateAsync(values);
         setOpen(false);
         setQuestions((await getQuestions.refetch()).data || []);
     }
@@ -124,7 +124,11 @@ export default function CreateQuestion() {
                                     <FormItem>
                                         <FormLabel>Question Placeholder</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Placeholder here" {...field} />
+                                            <Input
+                                                placeholder="Placeholder here"
+                                                value={field.value ?? undefined}
+                                                onChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormDescription>
                                             This is your question placeholder that appears when the question field
@@ -168,7 +172,13 @@ export default function CreateQuestion() {
                                             <FormItem>
                                                 <FormLabel>Minimum Length</FormLabel>
                                                 <FormControl>
-                                                    <Input required type="number" placeholder="0-15,000" {...field} />
+                                                    <Input
+                                                        required
+                                                        type="number"
+                                                        placeholder="0-15,000"
+                                                        value={field.value ?? undefined}
+                                                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                                    />
                                                 </FormControl>
                                                 <FormDescription>
                                                     This is your question's minimum response length in characters.
@@ -184,7 +194,13 @@ export default function CreateQuestion() {
                                             <FormItem>
                                                 <FormLabel>Maximum Length</FormLabel>
                                                 <FormControl>
-                                                    <Input required type="number" placeholder="0-15,000" {...field} />
+                                                    <Input
+                                                        required
+                                                        type="number"
+                                                        placeholder="0-15,000"
+                                                        value={field.value ?? undefined}
+                                                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                                    />
                                                 </FormControl>
                                                 <FormDescription>
                                                     This is your question's maximum response length in characters.
@@ -200,7 +216,7 @@ export default function CreateQuestion() {
                                     <FormField
                                         control={form.control}
                                         name="options"
-                                        render={({ field }) => (
+                                        render={() => (
                                             <FormItem>
                                                 <FormLabel>Response Options</FormLabel>
                                                 <FormControl>

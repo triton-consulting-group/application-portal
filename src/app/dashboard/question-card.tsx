@@ -45,10 +45,10 @@ export default function QuestionCard() {
                 {!recruitmentCycle && "Select a recruitment cycle first"}
                 {!questions.length && "No questions have been created"}
                 {questions.map(q => (
-                    <div>
-                        {q.displayName}
-                        {q.description}
-                    </div>
+                    <>
+                        <h1 className="text-md">{q.displayName}</h1>
+                        <h2 className="text-sm">{q.description}</h2>
+                    </>
                 ))}
             </CardContent>
             <CardFooter className="flex justify-between">

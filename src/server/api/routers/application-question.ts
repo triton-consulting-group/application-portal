@@ -8,6 +8,7 @@ import {
     publicProcedure,
 } from "~/server/api/trpc";
 import { applicationQuestions } from "~/server/db/schema";
+import { FieldType } from "~/server/db/types";
 
 export const applicationQuestionRouter = createTRPCRouter({
     getByCycle: publicProcedure
@@ -21,6 +22,15 @@ export const applicationQuestionRouter = createTRPCRouter({
     create: adminProcedure
         .input(createInsertSchema(applicationQuestions))
         .mutation(async ({ ctx, input }) => {
+            if (input.type === FieldType.STRING) {
+                if ((input.minLength ?? 0) >= (input.maxLength ?? 1)) {
+                    throw new TRPCError({
+                        message: "Minimum length can't be larger than maximum length",
+                        code: "BAD_REQUEST"
+                    });
+                }
+            }
+
             const question = await ctx.db
                 .insert(applicationQuestions)
                 .values(input);
@@ -45,14 +55,14 @@ export const applicationQuestionRouter = createTRPCRouter({
                 .update(applicationQuestions)
                 .set(input)
                 .where(eq(applicationQuestions.id, input.id));
-            
+
             if (updateResult.rowsAffected === 0) {
                 throw new TRPCError({
                     message: `Question with id ${input.id} not found`,
                     code: "NOT_FOUND"
                 });
             }
-            
+
             return updateResult;
         })
 });

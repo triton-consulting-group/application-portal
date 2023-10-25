@@ -116,7 +116,7 @@ export const applicationQuestions = mysqlTable(
     "applicationQuestion",
     {
         id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-        cycleId: varchar("id", { length: 255 }).notNull(),
+        cycleId: varchar("cycleId", { length: 255 }).notNull(),
         displayName: varchar("displayName", { length: 255 }).notNull(),
         description: varchar("description", { length: 255 }).notNull(),
         type: mysqlEnum("type",
@@ -124,7 +124,7 @@ export const applicationQuestions = mysqlTable(
         )
             .notNull(),
         required: boolean("required").notNull(),
-        placeholder: varchar("id", { length: 255 }),
+        placeholder: varchar("placeholder", { length: 255 }),
         options: json("options").$type<string[]>(),
         maxLength: int("maxLength"),
         minLength: int("minLength"),
