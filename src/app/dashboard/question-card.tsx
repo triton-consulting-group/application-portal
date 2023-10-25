@@ -12,7 +12,7 @@ import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms"
 import React from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Pencil, Trash2, X } from "lucide-react";
+import { Asterisk, Pencil, Trash2, X } from "lucide-react";
 import CreateQuestion from "./create-question";
 
 export default function QuestionCard() {
@@ -58,7 +58,10 @@ export default function QuestionCard() {
                             </Button>
                         )}
                         <div className="flex flex-col">
-                            <h1 className="text-md font-semibold">{q.displayName}</h1>
+                            <h1 className="flex text-md font-semibold">
+                                {q.displayName}
+                                {q.required && <Asterisk className="text-red-500 h-4"></Asterisk>}
+                            </h1>
                             <h2 className="text-sm">{q.description}</h2>
                         </div>
                     </div>
