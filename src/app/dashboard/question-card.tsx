@@ -12,7 +12,7 @@ import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms"
 import React from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Pencil, X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import CreateQuestion from "./create-question";
 
 export default function QuestionCard() {
@@ -20,6 +20,7 @@ export default function QuestionCard() {
     const [questions, setQuestions] = useAtom(applicationQuestionsAtom);
     const [editing, setEditing] = React.useState<boolean>(false);
     const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
+    const deleteQuestionMutation = api.applicationQuestion.delete.useMutation();
 
     const fetchQuestions = async () => {
         if (recruitmentCycle) {
@@ -27,13 +28,18 @@ export default function QuestionCard() {
         }
     };
 
+    const deleteQuestion = async (id: string) => {
+        setQuestions(questions.filter(q => q.id !== id));
+        await deleteQuestionMutation.mutateAsync(id);
+    }
+
     React.useEffect(() => {
         fetchQuestions();
     }, [recruitmentCycle]);
 
     return (
         <Card className="w-1/3">
-            <CardHeader>
+            <CardHeader className="pb-1">
                 <CardTitle className="flex justify-between items-center">
                     Application Questions
                     <Button variant="ghost" onClick={() => setEditing(!editing)}>
@@ -41,14 +47,21 @@ export default function QuestionCard() {
                     </Button>
                 </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-y-2 divide-y">
                 {!recruitmentCycle && "Select a recruitment cycle first"}
                 {!questions.length && "No questions have been created"}
                 {questions.map(q => (
-                    <>
-                        <h1 className="text-md">{q.displayName}</h1>
-                        <h2 className="text-sm">{q.description}</h2>
-                    </>
+                    <div className="border-zinc-700 pt-2 flex flex-row items-center">
+                        {editing && (
+                            <Button variant="ghost" className="p-0 mr-3 ml-2" onClick={() => deleteQuestion(q.id ?? "")}>
+                                <Trash2 />
+                            </Button>
+                        )}
+                        <div className="flex flex-col">
+                            <h1 className="text-md font-semibold">{q.displayName}</h1>
+                            <h2 className="text-sm">{q.description}</h2>
+                        </div>
+                    </div>
                 ))}
             </CardContent>
             <CardFooter className="flex justify-between">
