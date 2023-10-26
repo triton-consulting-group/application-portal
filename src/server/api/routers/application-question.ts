@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { eq, sql } from "drizzle-orm";
+import { SQL, eq, inArray, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import {
@@ -73,5 +73,21 @@ export const applicationQuestionRouter = createTRPCRouter({
             }
 
             return updateResult;
+        }),
+    reorder: adminProcedure
+        .input(z.string().array())
+        .mutation(({ ctx, input }) => {
+            const sqlChunks: SQL[] = [
+                sql`(CASE`,
+                ...input.map((id, idx) => {
+                    return sql`WHEN ${applicationQuestions.id} = ${id} THEN ${idx}`
+                }),
+                sql`END)`
+            ];
+            
+            return ctx.db
+                .update(applicationQuestions)
+                .set({order: sql.join(sqlChunks, sql.raw(" "))})
+                .where(inArray(applicationQuestions.id, input))
         })
 });

@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^0.3.2",
+    "@dnd-kit/core": "^6.0.8",
+    "@dnd-kit/sortable": "^7.0.2",
+    "@dnd-kit/utilities": "^3.2.1",
     "@hookform/resolvers": "^3.3.2",
     "@planetscale/database": "^1.11.0",
     "@radix-ui/react-checkbox": "^1.0.4",

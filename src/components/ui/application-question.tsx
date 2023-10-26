@@ -70,8 +70,6 @@ export function ApplicationQuestion({
                                     checked={field.value?.split(",,,")?.includes(o)}
                                     onCheckedChange={checked => {
                                         if (checked) {
-                                            console.log("val:");
-                                            console.log([...(field.value ? field.value.split(",,,") : []), o].join(",,,"));
                                             field.onChange([...(field.value ? field.value.split(",,,") : []), o].join(",,,"));
                                         } else {
                                             field.onChange(field.value
@@ -80,7 +78,6 @@ export function ApplicationQuestion({
                                                 .join(",,,")
                                             );
                                         }
-                                        console.log(field.value);
                                     }}
                                 />
                             </FormControl>
