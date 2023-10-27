@@ -24,7 +24,8 @@ export default function CreateRecruitmentCycle({
     const createCycle = api.recruitmentCycle.create.useMutation();
     const getCycles = api.recruitmentCycle.getAll.useQuery(undefined, { enabled: false });
 
-    const [cycles, setCycles] = useAtom(recruitmentCyclesAtom);
+    const [, setCycles] = useAtom(recruitmentCyclesAtom);
+    const startTimeWatch = form.watch("startTime");
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (values.endTime <= values.startTime) {
@@ -61,7 +62,11 @@ export default function CreateRecruitmentCycle({
                         <FormItem className="flex flex-col">
                             <FormLabel>Start Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput onChange={field.onChange} value={field.value}></DateTimeInput>
+                                <DateTimeInput 
+                                    afterDate={new Date()} 
+                                    onChange={field.onChange} 
+                                    value={field.value}
+                                ></DateTimeInput>
                             </FormControl>
                             <FormDescription>
                                 This is the time that the recruitment cycle applications will
@@ -78,7 +83,11 @@ export default function CreateRecruitmentCycle({
                         <FormItem className="flex flex-col">
                             <FormLabel>End Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput onChange={field.onChange} value={field.value}></DateTimeInput>
+                                <DateTimeInput 
+                                    afterDate={startTimeWatch ?? new Date()} 
+                                    onChange={field.onChange} 
+                                    value={field.value}
+                                ></DateTimeInput>
                             </FormControl>
                             <FormDescription>
                                 This is the time that the recruitment cycle applications will

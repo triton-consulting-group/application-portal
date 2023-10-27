@@ -24,20 +24,21 @@ import { X } from "lucide-react";
 import { ApplicationQuestion } from "~/components/ui/application-question";
 import { ScrollArea } from "~/components/ui/scroll-area";
 
-export default function CreateQuestion() {
+const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
+
+export default function CreateQuestion({ existingQuestion }: { existingQuestion: z.infer<typeof questionSchema> }) {
     const [open, setOpen] = useState<boolean>(false);
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
-    const [questions, setQuestions] = useAtom(applicationQuestionsAtom);
+    const [, setQuestions] = useAtom(applicationQuestionsAtom);
 
     const questionTypes: { value: FieldType, name: string }[] = Object.values(FieldType).map(type => ({
         value: type,
         name: type.replaceAll("_", " ").split(" ").map(s => s[0]?.toUpperCase() + s.substring(1)).join(" ")
     }));
 
-    const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 
     const form = useForm<z.infer<typeof questionSchema>>({
-        defaultValues: {
+        defaultValues: existingQuestion ? existingQuestion : {
             displayName: "",
             description: "",
             required: false,

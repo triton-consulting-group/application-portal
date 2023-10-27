@@ -10,10 +10,12 @@ import { Label } from "./label";
 
 export default function DateTimeInput({
     onChange,
-    value
+    value,
+    afterDate
 }: {
     onChange: (...event: any) => void,
-    value: Date
+    value: Date,
+    afterDate: Date
 }) {
     const [time, setTime] = React.useState<string>("");
 
@@ -68,7 +70,8 @@ export default function DateTimeInput({
                     mode="single"
                     selected={value}
                     onSelect={changeDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < afterDate}
+                    defaultMonth={value ?? afterDate}
                     required
                     initialFocus
                 />
