@@ -102,13 +102,15 @@ export default function QuestionCard() {
                             <Trash2 />
                         </Button>
                     )}
-                    <div className="flex flex-col">
-                        <h1 className="flex text-md font-semibold">
-                            {q.displayName}
-                            {q.required && <Asterisk className="text-red-500 h-4"></Asterisk>}
-                        </h1>
-                        <h2 className="text-sm">{q.description}</h2>
-                    </div>
+                    <CreateQuestion asChild existingQuestion={q} disabled={!editing}>
+                        <div className={"flex flex-col " + (editing && "cursor-pointer")}>
+                            <h1 className="flex text-md font-semibold">
+                                {q.displayName}
+                                {q.required && <Asterisk className="text-red-500 h-4"></Asterisk>}
+                            </h1>
+                            <h2 className="text-sm">{q.description}</h2>
+                        </div>
+                    </CreateQuestion>
                 </div>
                 {editing && (
                     <div className="h-6 w-6 ml-3">

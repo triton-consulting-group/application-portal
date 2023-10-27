@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod";
 import { atom } from "jotai";
-import { type z } from "zod";
+import { z } from "zod";
 import { applicationQuestions, recruitmentCycles } from "~/server/db/schema";
 
 const formSchema = createInsertSchema(recruitmentCycles);
@@ -12,8 +12,7 @@ export const recruitmentCyclesAtom = atom<RecruitmentCycle[]>([]);
  */
 export const selectedRecruitmentCycleAtom = atom<string>("");
 
-
-const questionSchema = createInsertSchema(applicationQuestions);
+const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 type ApplicationQuestion = z.infer<typeof questionSchema>;
 const applicationQuestionsPrimitiveAtom = atom<ApplicationQuestion[]>([]);
 export const applicationQuestionsAtom = atom<

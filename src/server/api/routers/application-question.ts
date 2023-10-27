@@ -50,7 +50,7 @@ export const applicationQuestionRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             return await ctx.db.delete(applicationQuestions).where(eq(applicationQuestions.id, input));
         }),
-    edit: adminProcedure
+    update: adminProcedure
         .input(createInsertSchema(applicationQuestions))
         .mutation(async ({ ctx, input }) => {
             if (!input.id) {
@@ -84,10 +84,10 @@ export const applicationQuestionRouter = createTRPCRouter({
                 }),
                 sql`END)`
             ];
-            
+
             return ctx.db
                 .update(applicationQuestions)
-                .set({order: sql.join(sqlChunks, sql.raw(" "))})
+                .set({ order: sql.join(sqlChunks, sql.raw(" ")) })
                 .where(inArray(applicationQuestions.id, input))
         })
 });

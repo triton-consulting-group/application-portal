@@ -13,7 +13,7 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationQuestions } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { type KeyboardEvent, useState, useEffect } from "react";
+import { ReactNode, type KeyboardEvent, useState, useEffect } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -26,7 +26,17 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 
 const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 
-export default function CreateQuestion({ existingQuestion }: { existingQuestion: z.infer<typeof questionSchema> }) {
+export default function CreateQuestion({
+    existingQuestion,
+    children,
+    asChild,
+    disabled
+}: {
+    existingQuestion?: z.infer<typeof questionSchema>,
+    children?: ReactNode,
+    asChild?: boolean
+    disabled?: boolean
+}) {
     const [open, setOpen] = useState<boolean>(false);
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [, setQuestions] = useAtom(applicationQuestionsAtom);
@@ -42,7 +52,8 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
             cycleId: recruitmentCycle,
         }
     });
-
+     
+    useEffect(() => { form.reset(); }, [existingQuestion])
     useEffect(() => { form.setValue("cycleId", recruitmentCycle) }, [recruitmentCycle]);
 
     const type = form.watch("type");
@@ -58,7 +69,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
             }
             form.setValue("options", opts);
             setOption("");
-        }
+        } 
     }
     function deleteOption(option: string) {
         form.setValue("options", (form.getValues("options") || []).filter(o => o !== option));
@@ -66,21 +77,32 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
 
     const dummyForm = useForm<Record<string, string>>({ defaultValues: { "test": "" } });
     const createQuestion = api.applicationQuestion.create.useMutation();
+    const updateQuestion = api.applicationQuestion.update.useMutation();
     const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
     async function onSubmit(values: z.infer<typeof questionSchema>) {
-        await createQuestion.mutateAsync(values);
+        if (existingQuestion) {
+            await updateQuestion.mutateAsync(values);
+        } else {
+            await createQuestion.mutateAsync(values);
+        }
         setOpen(false);
         setQuestions((await getQuestions.refetch()).data || []);
         setOption("");
         form.reset();
     }
 
+    const setDialogOpen = (val: boolean): void => {
+        setOpen(!disabled && val);
+    }
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    Create New Question +
-                </Button>
+                {asChild ? children : (
+                    <Button>
+                        Create New Question +
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="flex flex-col h-[80%] w-max overflow-x-visible z-50">
                 <DialogHeader>
@@ -155,7 +177,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Question Type</FormLabel>
-                                        <Select onValueChange={field.onChange}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a question type" />
@@ -242,7 +264,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                                     This is your question's response options. Press enter after each option.
                                                     Click the "X" on the option badge to delete it.
                                                 </FormDescription>
-                                                <div className="flex gap-x-2">
+                                                <div className="flex gap-x-2 flex-wrap gap-y-2">
                                                     {(options || []).map(o => (
                                                         <Badge className="flex flex-row gap-x-2" key={o}>
                                                             {o}
@@ -295,7 +317,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                     {!formValues.type && "Select a question type to see a preview"}
                 </div>
                 <div className="flex justify-end">
-                    <Button type="submit" form="form">Create</Button>
+                    <Button type="submit" form="form">{ existingQuestion ? "Update" : "Create"}</Button>
                 </div>
             </DialogContent>
         </Dialog>
