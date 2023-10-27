@@ -38,7 +38,11 @@ export default function RecruitmentCycleCombobox({
     const [cycles] = useAtom(recruitmentCyclesAtom);
     const [open, setOpen] = React.useState(false);
     const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
-    setValue(cycles?.[0]?.id || "");
+
+    React.useEffect(() => {
+        setValue(cycles?.[0]?.id || "");
+    }, [cycles]);
+
 
     function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {

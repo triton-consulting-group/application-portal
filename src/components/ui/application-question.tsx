@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "./radio-group";
 import { Checkbox } from "./checkbox";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
+import { Asterisk } from "lucide-react";
 
 const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 
@@ -112,7 +113,10 @@ export function ApplicationQuestion({
             name={question.id || question.displayName}
             render={({ field }) => (
                 <FormItem>
-                    <FormLabel>{question.displayName}</FormLabel>
+                    <FormLabel className="flex text-md text-semibold">
+                        {question.displayName}
+                        {question.required && <Asterisk className="text-red-500 h-4"></Asterisk>}
+                    </FormLabel>
                     <FormControl>
                         <QuestionContent field={field}></QuestionContent>
                     </FormControl>

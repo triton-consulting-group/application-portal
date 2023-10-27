@@ -134,7 +134,7 @@ export default function QuestionCard() {
             </CardHeader>
             <CardContent className="flex flex-col gap-y-2 divide-y">
                 {!recruitmentCycle && "Select a recruitment cycle first"}
-                {!questions.length && "No questions have been created"}
+                {recruitmentCycle && !questions.length && "No questions have been created"}
                 <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                     <SortableContext
                         strategy={verticalListSortingStrategy}

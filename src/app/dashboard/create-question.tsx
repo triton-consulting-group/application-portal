@@ -13,7 +13,7 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationQuestions } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useState, useEffect } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -36,16 +36,15 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
         name: type.replaceAll("_", " ").split(" ").map(s => s[0]?.toUpperCase() + s.substring(1)).join(" ")
     }));
 
-
     const form = useForm<z.infer<typeof questionSchema>>({
         defaultValues: existingQuestion ? existingQuestion : {
-            displayName: "",
-            description: "",
             required: false,
             cycleId: recruitmentCycle,
-            placeholder: ""
         }
     });
+
+    useEffect(() => { form.setValue("cycleId", recruitmentCycle) }, [recruitmentCycle]);
+
     const type = form.watch("type");
     const options = form.watch("options");
     const formValues = form.watch();
@@ -72,6 +71,8 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
         await createQuestion.mutateAsync(values);
         setOpen(false);
         setQuestions((await getQuestions.refetch()).data || []);
+        setOption("");
+        form.reset();
     }
 
     return (
@@ -95,7 +96,12 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                     <FormItem>
                                         <FormLabel>Question Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Name here" {...field} required />
+                                            <Input
+                                                placeholder="Name here"
+                                                required
+                                                value={field.value ?? ''}
+                                                onChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormDescription>This is your question name. E.g "Why TCG?"</FormDescription>
                                         <FormMessage />
@@ -109,10 +115,14 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                     <FormItem>
                                         <FormLabel>Question Description</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Description here" {...field} />
+                                            <Input
+                                                placeholder="Description here"
+                                                value={field.value ?? ''}
+                                                onChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormDescription>
-                                            This is your question description. E.g "Why do you want to join TCG? (100 words minimum)"
+                                            This is your question description. E.g "Why do you want to join TCG? (100 characters minimum)"
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -127,7 +137,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                         <FormControl>
                                             <Input
                                                 placeholder="Placeholder here"
-                                                value={field.value ?? undefined}
+                                                value={field.value ?? ''}
                                                 onChange={field.onChange}
                                             />
                                         </FormControl>
@@ -177,7 +187,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                                         required
                                                         type="number"
                                                         placeholder="0-15,000"
-                                                        value={field.value ?? undefined}
+                                                        value={field.value ?? ''}
                                                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                                                     />
                                                 </FormControl>
@@ -199,7 +209,7 @@ export default function CreateQuestion({ existingQuestion }: { existingQuestion:
                                                         required
                                                         type="number"
                                                         placeholder="0-15,000"
-                                                        value={field.value ?? undefined}
+                                                        value={field.value ?? ''}
                                                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                                                     />
                                                 </FormControl>
