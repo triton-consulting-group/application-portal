@@ -1,8 +1,5 @@
-import { createInsertSchema } from "drizzle-zod";
 import { type Control, type ControllerRenderProps } from "react-hook-form";
-import { z } from "zod";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
-import { applicationQuestions } from "~/server/db/schema";
 import { FieldType } from "~/server/db/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
@@ -10,14 +7,13 @@ import { Checkbox } from "./checkbox";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 import { Asterisk } from "lucide-react";
-
-const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
+import { ApplicationQuestion } from "~/app/types";
 
 export function ApplicationQuestion({
     question,
     control
 }: {
-    question: z.infer<typeof questionSchema>
+    question: ApplicationQuestion
     control: Control<any>
 }) {
     function QuestionContent({ field }: { field: ControllerRenderProps<any, string> }) {
