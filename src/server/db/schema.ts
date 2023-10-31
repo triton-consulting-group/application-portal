@@ -14,7 +14,6 @@ import {
 } from "drizzle-orm/mysql-core";
 import { type AdapterAccount } from "next-auth/adapters";
 import { FieldType, Role } from "./types";
-import { db } from ".";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -119,7 +118,7 @@ export const applicationQuestions = mysqlTable(
         id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         cycleId: varchar("cycleId", { length: 255 }).notNull(),
         displayName: varchar("displayName", { length: 255 }).notNull(),
-        description: varchar("description", { length: 255 }).notNull(),
+        description: varchar("description", { length: 255 }),
         type: mysqlEnum("type",
             [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE, FieldType.DROPDOWN]
         )
@@ -146,6 +145,7 @@ export const applicationResponses = mysqlTable(
     {
         id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         questionId: varchar("questionId", { length: 255 }).notNull(),
+        applicationId: varchar("applicationId", { length: 255 }).notNull(),
         value: varchar("value", { length: 15000 }).notNull(),
     }
 );
@@ -155,6 +155,10 @@ export const applicationResponsesRelations = relations(applicationResponses, ({ 
         fields: [applicationResponses.questionId],
         references: [applicationQuestions.id]
     }),
+    applications: one(applications, {
+        fields: [applicationResponses.applicationId],
+        references: [applications.id]
+    })
 }));
 
 export const applications = mysqlTable(
@@ -163,10 +167,11 @@ export const applications = mysqlTable(
         id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
         userId: varchar("userId", { length: 255 }).notNull(),
         cycleId: varchar("cycleId", { length: 255 }).notNull(),
+        submitted: boolean("submitted").notNull().default(false),
     }
 );
 
-export const applicationsRelations = relations(applications, ({ one }) => ({
+export const applicationsRelations = relations(applications, ({ one, many }) => ({
     user: one(users, {
         fields: [applications.userId],
         references: [users.id]
@@ -174,6 +179,7 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
     recruitmentCycle: one(recruitmentCycles, {
         fields: [applications.cycleId],
         references: [recruitmentCycles.id]
-    })
+    }),
+    applicationResponses: many(applicationResponses),
 }));
 

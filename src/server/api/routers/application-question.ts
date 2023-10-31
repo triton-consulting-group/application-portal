@@ -17,10 +17,11 @@ export const applicationQuestionRouter = createTRPCRouter({
             return ctx.db
                 .select()
                 .from(applicationQuestions)
-                .where(eq(applicationQuestions.cycleId, input));
+                .where(eq(applicationQuestions.cycleId, input))
+                .orderBy(applicationQuestions.order);
         }),
     create: adminProcedure
-        .input(createInsertSchema(applicationQuestions))
+        .input(createInsertSchema(applicationQuestions, { options: z.string().array() }))
         .mutation(async ({ ctx, input }) => {
             if (input.type === FieldType.STRING) {
                 if ((input.minLength ?? 0) >= (input.maxLength ?? 1)) {
@@ -51,7 +52,7 @@ export const applicationQuestionRouter = createTRPCRouter({
             return await ctx.db.delete(applicationQuestions).where(eq(applicationQuestions.id, input));
         }),
     update: adminProcedure
-        .input(createInsertSchema(applicationQuestions))
+        .input(createInsertSchema(applicationQuestions, { options: z.string().array() }))
         .mutation(async ({ ctx, input }) => {
             if (!input.id) {
                 throw new TRPCError({

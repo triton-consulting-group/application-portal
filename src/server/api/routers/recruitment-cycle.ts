@@ -15,14 +15,15 @@ export const recruitmentCycleRouter = createTRPCRouter({
             return ctx.db.select().from(recruitmentCycles).orderBy(desc(recruitmentCycles.endTime));
         }),
     getActive: publicProcedure
-        .query(({ ctx }) => {
-            return ctx.db
+        .query(async ({ ctx }) => {
+            const [cycle] = await ctx.db
                 .select()
                 .from(recruitmentCycles)
                 .where(
                     sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
                 )
                 .limit(1);
+            return cycle;
         }),
     create: adminProcedure
         .input(createInsertSchema(recruitmentCycles))

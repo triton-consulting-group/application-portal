@@ -8,7 +8,8 @@ import {
 import GoogleProvider from "next-auth/providers/google";
 import { env } from "~/env.mjs";
 import { db } from "~/server/db";
-import { type Role, mysqlTable, sessions, users } from "~/server/db/schema";
+import { mysqlTable, sessions, users } from "~/server/db/schema";
+import { Role } from "./db/types";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -25,7 +26,7 @@ declare module "next-auth" {
     }
 
     interface User {
-       role: Role;
+        role: Role;
     }
 }
 

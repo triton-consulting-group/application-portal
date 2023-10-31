@@ -1,6 +1,7 @@
 import { recruitmentCycleRouter } from "~/server/api/routers/recruitment-cycle";
 import { createTRPCRouter } from "~/server/api/trpc";
 import { applicationQuestionRouter } from "./routers/application-question";
+import { applicationRouter } from "./routers/application";
 
 /**
  * This is the primary router for your server.
@@ -9,7 +10,8 @@ import { applicationQuestionRouter } from "./routers/application-question";
  */
 export const appRouter = createTRPCRouter({
     recruitmentCycle: recruitmentCycleRouter,
-    applicationQuestion: applicationQuestionRouter
+    applicationQuestion: applicationQuestionRouter,
+    application: applicationRouter,
 });
 
 // export type definition of API

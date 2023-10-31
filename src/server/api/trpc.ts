@@ -10,7 +10,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type NextRequest } from "next/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
@@ -129,6 +129,26 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const authenticatedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+/** Resuable middleware that enforces users are applicants before running the procedure */
+const enforceUserIsApplicant = t.middleware(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    if (ctx.session.user.role !== Role.APPLICANT) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    return next({
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { ...ctx.session, user: ctx.session.user },
+        },
+    });
+});
+
+export const applicantProcedure = t.procedure.use(enforceUserIsApplicant);
 
 /** Reusable middleware that enforces users are members / admins before running the procedure. */
 const enforceUserIsMember = t.middleware(({ ctx, next }) => {
