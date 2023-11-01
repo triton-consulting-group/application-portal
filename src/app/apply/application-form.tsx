@@ -59,6 +59,7 @@ export function ApplicationForm({
             }
         }
 
+        clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
             for (const key in updateQueue.current) {
                 createOrUpdateResponse.mutate(updateQueue.current[key] as ApplicationResponseInsert);
