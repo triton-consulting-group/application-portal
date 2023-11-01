@@ -33,7 +33,10 @@ export function ApplicationQuestion({
             }
         } else if (question.type === FieldType.DROPDOWN) {
             return (
-                <Select>
+                <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                >
                     <SelectTrigger>
                         <SelectValue placeholder={question.placeholder || ""}></SelectValue>
                     </SelectTrigger>
@@ -46,7 +49,10 @@ export function ApplicationQuestion({
             );
         } else if (question.type === FieldType.MULTIPLE_CHOICE) {
             return (
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value}>
+                <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                >
                     {(question.options || []).map(o => (
                         <FormItem className="flex items-center space-x-3 space-y-0" key={o}>
                             <FormControl>
@@ -61,7 +67,10 @@ export function ApplicationQuestion({
             return (
                 <>
                     {(question.options || []).map(o => (
-                        <FormItem key={o} className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormItem
+                            key={o}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                        >
                             <FormControl>
                                 <Checkbox
                                     checked={field.value?.split(",,,")?.includes(o)}
@@ -85,7 +94,10 @@ export function ApplicationQuestion({
             );
         } else if (question.type === FieldType.BOOLEAN) {
             return (
-                <RadioGroup>
+                <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                >
                     <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
                             <RadioGroupItem value="true" />

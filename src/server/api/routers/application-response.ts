@@ -4,24 +4,26 @@ import { applicationQuestions, applicationResponses, applications, recruitmentCy
 import { and, eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { TRPCError } from "@trpc/server";
-import { getValidator } from "~/lib/validate-question";
 
 export const applicationResponseRouter = createTRPCRouter({
-    getUserResponsesByCycleId: applicantProcedure 
+    getUserResponsesByCycleId: applicantProcedure
         .input(z.string())
-        .query(({ ctx, input }) => {
+        .query(async ({ ctx, input }) => {
             return ctx.db
-                .select()
+                .select({
+                    id: applicationResponses.id,
+                    questionId: applicationResponses.questionId,
+                    value: applicationResponses.value,
+                    applicationId: applicationResponses.questionId
+                })
                 .from(applicationResponses)
-                .leftJoin(applications, eq(applications.id, applicationResponses.id))
-                .where(
-                    and(
-                        eq(applications.userId, ctx.session.user.id),
-                        eq(applications.cycleId, input)
-                    )
-                )
+                .innerJoin(applications, and(
+                    eq(applications.id, applicationResponses.applicationId),
+                    eq(applications.cycleId, input),
+                    eq(applications.userId, ctx.session.user.id)
+                ));
         }),
-    create: applicantProcedure 
+    createOrUpdate: applicantProcedure
         .input(createInsertSchema(applicationResponses))
         .mutation(async ({ ctx, input }) => {
             const [latestCycle] = await ctx.db
@@ -30,7 +32,7 @@ export const applicationResponseRouter = createTRPCRouter({
                 .where(
                     sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
                 );
-            
+
             const [application] = await ctx.db
                 .select()
                 .from(applications)
@@ -53,7 +55,7 @@ export const applicationResponseRouter = createTRPCRouter({
                     eq(applicationQuestions.cycleId, application.cycleId),
                     eq(applicationQuestions.id, input.questionId)
                 ));
-            
+
             if (!question) {
                 throw new TRPCError({
                     message: "Invalid question id",
@@ -61,80 +63,24 @@ export const applicationResponseRouter = createTRPCRouter({
                 });
             }
 
-            const validationResult = getValidator(question).safeParse(input.value);
-            
-            if (!validationResult.success) {
-                throw new TRPCError({
-                    message: validationResult.error.message,
-                    code: "BAD_REQUEST"
-                }); 
-            }
-            
-            return ctx.db.insert(applicationResponses).values(input);
-        }),
-    edit: applicantProcedure
-        .input(z.object({ responseId: z.string(), value: z.string() }))
-        .mutation(async ({ ctx, input }) => {
-            const [latestCycle] = await ctx.db
-                .select()
-                .from(recruitmentCycles)
-                .where(
-                    sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
-                );
-
-            if (!latestCycle) {
-                throw new TRPCError({
-                    message: "Can't edit responses outside of the latest recruitment cycle",
-                    code: "BAD_REQUEST"
-                });
-            }
-            
+            // dont validate values until the final form submission
             const [response] = await ctx.db
                 .select()
                 .from(applicationResponses)
-                .where(eq(applicationResponses.id, input.responseId))
-
-            const [application] = await ctx.db
-                .select()
-                .from(applications)
                 .where(and(
-                    eq(applications.userId, ctx.session.user.id),
-                    eq(applications.cycleId, latestCycle.id)
+                    eq(applicationResponses.applicationId, input.applicationId),
+                    eq(applicationResponses.questionId, input.questionId)
                 ));
-            
-            if (!application || application.id !== response?.applicationId) {
-                throw new TRPCError({
-                    message: "Can't edit responses outside of the latest recruitment cycle",
-                    code: "BAD_REQUEST"
-                });
+            if (response) {
+                return ctx.db
+                    .update(applicationResponses)
+                    .set(input)
+                    .where(eq(applicationResponses.id, response.id))
+            } else {
+                return ctx.db
+                    .insert(applicationResponses)
+                    .values(input)
+                    .onDuplicateKeyUpdate({ set: { value: input.value } })
             }
-
-            const [question] = await ctx.db
-                .select()
-                .from(applicationQuestions)
-                .where(and(
-                    eq(applicationQuestions.id, response.questionId)
-                ));
-            
-            if (!question) {
-                throw new TRPCError({
-                    message: "The response's associated question can't be found",
-                    code: "BAD_REQUEST"
-                });
-            }
-
-            const validationResult = getValidator(question).safeParse(input.value);
-            
-            if (!validationResult.success) {
-                throw new TRPCError({
-                    message: validationResult.error.message,
-                    code: "BAD_REQUEST"
-                }); 
-            }
-            
-            return ctx.db
-                .update(applicationResponses)
-                .set(input)
-                .where(eq(applicationResponses.id, input.responseId));
-        })
+        }),
 });
