@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { late, z } from "zod";
 import { applicantProcedure, createTRPCRouter } from "../trpc";
 import { applicationQuestions, applicationResponses, applications, recruitmentCycles } from "~/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
@@ -26,20 +26,34 @@ export const applicationResponseRouter = createTRPCRouter({
     createOrUpdate: applicantProcedure
         .input(createInsertSchema(applicationResponses))
         .mutation(async ({ ctx, input }) => {
-            const [latestCycle] = await ctx.db
-                .select()
-                .from(recruitmentCycles)
-                .where(
-                    sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
-                );
-
-            const [application] = await ctx.db
-                .select()
-                .from(applications)
-                .where(and(
-                    eq(applications.userId, ctx.session.user.id),
-                    eq(applications.id, input.applicationId)
-                ));
+            const [[latestCycle], [application], [question], [response]] = await Promise.all([
+                ctx.db
+                    .select()
+                    .from(recruitmentCycles)
+                    .where(
+                        sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
+                    ),
+                ctx.db
+                    .select()
+                    .from(applications)
+                    .where(and(
+                        eq(applications.userId, ctx.session.user.id),
+                        eq(applications.id, input.applicationId)
+                    )),
+                ctx.db
+                    .select()
+                    .from(applicationQuestions)
+                    .where(and(
+                        eq(applicationQuestions.id, input.questionId)
+                    )),
+                ctx.db
+                    .select()
+                    .from(applicationResponses)
+                    .where(and(
+                        eq(applicationResponses.applicationId, input.applicationId),
+                        eq(applicationResponses.questionId, input.questionId)
+                    )),
+            ]);
 
             if (!latestCycle || latestCycle.id !== application?.cycleId) {
                 throw new TRPCError({
@@ -48,29 +62,13 @@ export const applicationResponseRouter = createTRPCRouter({
                 });
             }
 
-            const [question] = await ctx.db
-                .select()
-                .from(applicationQuestions)
-                .where(and(
-                    eq(applicationQuestions.cycleId, application.cycleId),
-                    eq(applicationQuestions.id, input.questionId)
-                ));
-
-            if (!question) {
+            if (!question || question.cycleId !== latestCycle.id) {
                 throw new TRPCError({
                     message: "Invalid question id",
                     code: "BAD_REQUEST"
                 });
             }
 
-            // dont validate values until the final form submission
-            const [response] = await ctx.db
-                .select()
-                .from(applicationResponses)
-                .where(and(
-                    eq(applicationResponses.applicationId, input.applicationId),
-                    eq(applicationResponses.questionId, input.questionId)
-                ));
             if (response) {
                 return ctx.db
                     .update(applicationResponses)
