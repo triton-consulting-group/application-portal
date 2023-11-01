@@ -55,7 +55,6 @@ export function ApplicationForm({
                     value: formWatch[questionId],
                     ... (response ? { id: response.id } : {})
                 };
-                console.log(`id ${questionId}\nval ${formWatch[questionId]}`)
             }
         }
 
