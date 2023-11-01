@@ -31,11 +31,6 @@ export default async function Apply() {
 
     return (
         <div className="px-12 py-16">
-            <h1 className="text-3xl mb-2">Application</h1>
-            <h2 className="mb-6">
-                This form autosaves! Feel free to leave and finish your application later. Once you are
-                ready to submit, click "Submit Application"
-            </h2>
             <ApplicationForm
                 questions={applicationQuestions}
                 responses={applicationResponses}

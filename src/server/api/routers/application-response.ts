@@ -62,6 +62,13 @@ export const applicationResponseRouter = createTRPCRouter({
                 });
             }
 
+            if (application.submitted) {
+                throw new TRPCError({
+                    message: "Can't update response when the assosciated application is submitted",
+                    code: "BAD_REQUEST"
+                });
+            }
+
             if (!question || question.cycleId !== latestCycle.id) {
                 throw new TRPCError({
                     message: "Invalid question id",

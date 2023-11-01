@@ -8,10 +8,11 @@ import { ApplicationQuestion } from "~/components/ui/application-question";
 import { z } from "zod";
 import { getValidator } from "~/lib/validate-question";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 const insertResponseSchema = createInsertSchema(applicationResponses)
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -26,8 +27,11 @@ export function ApplicationForm({
     responses: ApplicationResponse[],
     application: Application,
 }) {
-    const submitApplication = () => {
-
+    const [submitted, setSubmitted] = useState<boolean>(application.submitted);
+    const submitApplicationMutation = api.application.submit.useMutation();
+    const submitApplication = async () => {
+        setSubmitted(true);
+        await submitApplicationMutation.mutateAsync(application.id);
     };
 
     const formSchema = z.object(Object.fromEntries(questions.map(q => [q.id, getValidator(q)])));
@@ -43,7 +47,7 @@ export function ApplicationForm({
     const prevSavedForm = useRef(defaultValues);
     const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
     const updateQueue = useRef<{ [key: string]: ApplicationResponseInsert }>({});
-    const createOrUpdateResponse = api.applicationResponse.createOrUpdate.useMutation();
+    const createOrUpdateResponseMutation = api.applicationResponse.createOrUpdate.useMutation();
 
     useEffect(() => {
         for (const questionId of Object.keys(formWatch)) {
@@ -61,7 +65,7 @@ export function ApplicationForm({
         clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
             for (const key in updateQueue.current) {
-                createOrUpdateResponse.mutate(updateQueue.current[key] as ApplicationResponseInsert);
+                createOrUpdateResponseMutation.mutate(updateQueue.current[key] as ApplicationResponseInsert);
             }
             updateQueue.current = {}
         }, UPDATE_INTERVAL);
@@ -69,14 +73,29 @@ export function ApplicationForm({
     }, [formWatch]);
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
-                {questions.map(q => (
-                    <ApplicationQuestion question={q} control={form.control} key={q.id}></ApplicationQuestion>
-                ))}
-                <Button type="submit">Submit Application</Button>
-            </form>
-        </Form>
+        <div>
+            <h1 className="text-3xl mb-2">Application</h1>
+            <h2 className="mb-6">
+                {submitted ?
+                    "You've already submitted your application. Keep an eye on your email for any updates to your application." :
+                    `This form autosaves! Feel free to leave and finish your application later. Once you are
+                    ready to submit, click "Submit Application"`
+                }
+            </h2>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
+                    {questions.map(q => (
+                        <ApplicationQuestion 
+                            disabled={submitted}
+                            question={q} 
+                            control={form.control} 
+                            key={q.id}
+                        ></ApplicationQuestion>
+                    ))}
+                    {!submitted && <Button type="submit">Submit Application</Button>}
+                </form>
+            </Form>
+        </div> 
     )
 }
 

@@ -9,15 +9,27 @@ import { Textarea } from "./textarea";
 import { Asterisk } from "lucide-react";
 import { ApplicationQuestion } from "~/app/types";
 
-function QuestionContent({ question, field }: { question: ApplicationQuestion, field: ControllerRenderProps<any, string> }) {
+function QuestionContent({
+    question,
+    field,
+    disabled,
+}: {
+    question: ApplicationQuestion,
+    field: ControllerRenderProps<any, string>,
+    disabled?: boolean,
+}) {
     if (question.type === FieldType.STRING) {
         if ((question.maxLength || 0) < 100) {
             return (
-                <Input placeholder={question.placeholder || ""} {...field} />
+                <Input
+                    placeholder={question.placeholder || ""} {...field}
+                    disabled={disabled}
+                />
             );
         } else {
             return (
                 <Textarea
+                    disabled={disabled}
                     placeholder={question.placeholder || ""}
                     className="resize-none"
                     {...field}
@@ -29,6 +41,7 @@ function QuestionContent({ question, field }: { question: ApplicationQuestion, f
             <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                disabled={disabled}
             >
                 <SelectTrigger>
                     <SelectValue placeholder={question.placeholder || ""}></SelectValue>
@@ -45,6 +58,7 @@ function QuestionContent({ question, field }: { question: ApplicationQuestion, f
             <RadioGroup
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                disabled={disabled}
             >
                 {(question.options || []).map(o => (
                     <FormItem className="flex items-center space-x-3 space-y-0" key={o}>
@@ -66,6 +80,7 @@ function QuestionContent({ question, field }: { question: ApplicationQuestion, f
                     >
                         <FormControl>
                             <Checkbox
+                                disabled={disabled}
                                 checked={field.value?.split(",,,")?.includes(o)}
                                 onCheckedChange={checked => {
                                     if (checked) {
@@ -90,6 +105,7 @@ function QuestionContent({ question, field }: { question: ApplicationQuestion, f
             <RadioGroup
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                disabled={disabled}
             >
                 <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
@@ -110,10 +126,12 @@ function QuestionContent({ question, field }: { question: ApplicationQuestion, f
 
 export function ApplicationQuestion({
     question,
-    control
+    control,
+    disabled,
 }: {
     question: ApplicationQuestion
-    control: Control<any>
+    control: Control<any>,
+    disabled?: boolean,
 }) {
     return (
         <FormField
@@ -127,7 +145,11 @@ export function ApplicationQuestion({
                     </FormLabel>
                     {question.description && <FormDescription>{question.description}</FormDescription>}
                     <FormControl>
-                        <QuestionContent question={question} field={field}></QuestionContent>
+                        <QuestionContent
+                            disabled={disabled}
+                            question={question}
+                            field={field}
+                        ></QuestionContent>
                     </FormControl>
                     <FormMessage />
                 </FormItem>
