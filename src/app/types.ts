@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { applicationQuestions, applicationResponses, applications, recruitmentCycles } from "~/server/db/schema";
+import { applicationQuestions, applicationResponses, applications, recruitmentCycles, users } from "~/server/db/schema";
 
 const recruitmentCycleSchema = createSelectSchema(recruitmentCycles);
 export type RecruitmentCycle = z.infer<typeof recruitmentCycleSchema>;
@@ -13,4 +13,7 @@ export type Application = z.infer<typeof applicationSchema>;
 
 const applicationResponseSchema = createSelectSchema(applicationResponses);
 export type ApplicationResponse = z.infer<typeof applicationResponseSchema>;
+
+const userSchema = createSelectSchema(users)
+export type User = z.infer<typeof userSchema>;
 

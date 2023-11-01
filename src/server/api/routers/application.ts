@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { applicantProcedure, createTRPCRouter, memberProcedure } from "../trpc";
-import { applicationQuestions, applicationResponses, applications, recruitmentCycles } from "~/server/db/schema";
+import { applicationQuestions, applicationResponses, applications, recruitmentCycles, users } from "~/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getValidator } from "~/lib/validate-question";
@@ -23,7 +23,11 @@ export const applicationRouter = createTRPCRouter({
     getApplicationsByCycleId: memberProcedure
         .input(z.string())
         .query(({ ctx, input }) => {
-            return ctx.db.select().from(applications).where(eq(applications.cycleId, input));
+            return ctx.db
+                .select()
+                .from(applications)
+                .where(eq(applications.cycleId, input))
+                .leftJoin(users, eq(users.id, applications.userId))
         }),
     create: applicantProcedure
         .mutation(async ({ ctx }) => {

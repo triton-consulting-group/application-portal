@@ -1,5 +1,5 @@
-import { late, z } from "zod";
-import { applicantProcedure, createTRPCRouter } from "../trpc";
+import { z } from "zod";
+import { applicantProcedure, createTRPCRouter, memberProcedure } from "../trpc";
 import { applicationQuestions, applicationResponses, applications, recruitmentCycles } from "~/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 export const applicationResponseRouter = createTRPCRouter({
     getUserResponsesByCycleId: applicantProcedure
         .input(z.string())
-        .query(async ({ ctx, input }) => {
+        .query(({ ctx, input }) => {
             return ctx.db
                 .select({
                     id: applicationResponses.id,
@@ -21,6 +21,22 @@ export const applicationResponseRouter = createTRPCRouter({
                     eq(applications.id, applicationResponses.applicationId),
                     eq(applications.cycleId, input),
                     eq(applications.userId, ctx.session.user.id)
+                ));
+        }),
+    getResponsesByCycleId: memberProcedure
+        .input(z.string())
+        .query(({ ctx, input }) => {
+            return ctx.db
+                .select({
+                    id: applicationResponses.id,
+                    questionId: applicationResponses.questionId,
+                    value: applicationResponses.value,
+                    applicationId: applicationResponses.applicationId
+                })
+                .from(applicationResponses)
+                .leftJoin(applications, and(
+                    eq(applications.id, applicationResponses.applicationId),
+                    eq(applications.cycleId, input)
                 ));
         }),
     createOrUpdate: applicantProcedure

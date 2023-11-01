@@ -5,6 +5,7 @@ import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
 import QuestionCard from "./question-card";
+import ApplicationTable from "./application-table";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
@@ -26,10 +27,19 @@ export default async function Dashboard() {
                     <TabsTrigger value="manage">Management</TabsTrigger>
                 </TabsList>
                 <TabsContent value="applications" className="flex flex-col">
-                    <RecruitmentCycleCombobox className="mb-6" createOption={false} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
+                    <RecruitmentCycleCombobox
+                        className="mb-6"
+                        createOption={false}
+                        recruitmentCycles={cycles}
+                    ></RecruitmentCycleCombobox>
+                    <ApplicationTable></ApplicationTable>
                 </TabsContent>
                 <TabsContent value="manage">
-                    <RecruitmentCycleCombobox className="mb-6" createOption={true} recruitmentCycles={cycles}></RecruitmentCycleCombobox>
+                    <RecruitmentCycleCombobox
+                        className="mb-6"
+                        createOption={true}
+                        recruitmentCycles={cycles}
+                    ></RecruitmentCycleCombobox>
                     <QuestionCard></QuestionCard>
                 </TabsContent>
             </Tabs>
