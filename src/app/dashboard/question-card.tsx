@@ -17,6 +17,7 @@ import CreateQuestion from "./create-question";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { PreviewApplication } from "./preview-application";
 
 export default function QuestionCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
@@ -149,7 +150,7 @@ export default function QuestionCard() {
                 </DndContext>
             </CardContent>
             <CardFooter className="flex justify-between flex-wrap gap-y-4">
-                <Button>Preview Application</Button>
+                <PreviewApplication questions={questions}></PreviewApplication>
                 <CreateQuestion></CreateQuestion>
             </CardFooter>
         </Card>
