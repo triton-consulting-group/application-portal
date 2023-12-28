@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { ApplicationQuestion, RecruitmentCycle } from "../types";
+import { ApplicationQuestion, RecruitmentCycle, RecruitmentCyclePhase } from "../types";
 
 export const recruitmentCyclesAtom = atom<RecruitmentCycle[]>([]);
 
@@ -23,4 +23,18 @@ export const applicationQuestionsAtom = atom<
     }
 );
 
+const recruitmentCyclePhasesPrimitiveAtom = atom<RecruitmentCyclePhase[]>([]);
+export const recruitmentCyclePhasesAtom = atom<
+    RecruitmentCyclePhase[],
+    [RecruitmentCyclePhase[]],
+    void
+>(
+    (get) => get(recruitmentCyclePhasesPrimitiveAtom),
+    (get, set, update) => {
+        update.sort((a, b) => {
+            return (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER);
+        });
+        set(recruitmentCyclePhasesPrimitiveAtom, update);
+    }
+);
 

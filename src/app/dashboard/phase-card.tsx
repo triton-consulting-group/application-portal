@@ -1,78 +1,71 @@
-"use client";
+"use client"
 
-import { useAtom } from "jotai";
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "src/components/ui/card";
-import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms";
-import React from "react";
-import { api } from "~/trpc/react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Asterisk, GripVertical, Pencil, Trash2, X } from "lucide-react";
-import CreateQuestion from "./create-question";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { GripVertical, Pencil, Trash2, X } from "lucide-react";
+import { useAtom } from "jotai";
+import { recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { api } from "~/trpc/react";
+import CreatePhase from "./create-phase";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { PreviewApplication } from "./preview-application";
 
-export default function QuestionCard() {
+export default function PhaseCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
-    const [questions, setQuestions] = useAtom(applicationQuestionsAtom);
-    const [editing, setEditing] = React.useState<boolean>(false);
-    const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
-    const deleteQuestionMutation = api.applicationQuestion.delete.useMutation();
-    const reorderQuestionMutation = api.applicationQuestion.reorder.useMutation();
+    const [editing, setEditing] = useState<boolean>(false);
+    const [phases, setPhases] = useAtom(recruitmentCyclePhasesAtom);
+    const getPhases = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle, { enabled: false });
+    const reorderPhases = api.recruitmentCyclePhase.reorder.useMutation();
+    const deletePhaseMutation = api.recruitmentCyclePhase.delete.useMutation();
     const sensors = useSensors(useSensor(PointerSensor));
+
+    const fetchPhases = async () => {
+        if (recruitmentCycle) {
+            const phases = (await getPhases.refetch()).data || [];
+            setPhases(phases);
+        }
+    };
+
+    const deletePhase = async(id: string) => {
+        setPhases(phases.filter(p => p.id !== id));
+        await deletePhaseMutation.mutateAsync(id);
+    }
 
     const handleDragEnd = (e: DragEndEvent) => {
         const { active, over } = e;
         if (over && active.id !== over.id) {
-            const activeIdx = questions.findIndex(q => q.id === active.id);
-            const overIdx = questions.findIndex(q => q.id === over.id);
-            let newQuestions = [...questions]
+            const activeIdx = phases.findIndex(q => q.id === active.id);
+            const overIdx = phases.findIndex(q => q.id === over.id);
+            let newQuestions = [...phases]
             // if next to eachother, swap order
             // else insert at hover over position and move everything else back
             if (Math.abs(activeIdx - overIdx) === 1) {
                 const tmp = newQuestions[activeIdx];
-                newQuestions[activeIdx] = newQuestions[overIdx] as typeof questions[number];
-                newQuestions[overIdx] = tmp as typeof questions[number];
+                newQuestions[activeIdx] = newQuestions[overIdx] as typeof phases[number];
+                newQuestions[overIdx] = tmp as typeof phases[number];
             } else {
                 newQuestions = newQuestions.filter(q => q.id !== active.id);
                 newQuestions.splice(
                     overIdx, 
                     0,
-                    questions[activeIdx] as typeof questions[number]
+                    phases[activeIdx] as typeof phases[number]
                 );
             }
-            setQuestions(newQuestions.map((q, idx) => {
+            setPhases(newQuestions.map((q, idx) => {
                 q.order = idx;
                 return q;
             }));
-            reorderQuestionMutation.mutateAsync(newQuestions.map(q => q.id ?? ""));
+            reorderPhases.mutateAsync(newQuestions.map(q => q.id ?? ""));
         }
     };
 
-    const fetchQuestions = async () => {
-        if (recruitmentCycle) {
-            const questions = (await getQuestions.refetch()).data || [];
-            setQuestions(questions);
-        }
-    };
-
-    const deleteQuestion = async (id: string) => {
-        setQuestions(questions.filter(q => q.id !== id));
-        await deleteQuestionMutation.mutateAsync(id);
-    };
-
-    React.useEffect(() => {
-        fetchQuestions();
+    useEffect(() => {
+        fetchPhases();
     }, [recruitmentCycle]);
 
-    function SortableQuestion({ q }: { q: typeof questions[number] }) {
+    function SortablePhase({ p }: { p: typeof phases[number] }) {
         const {
             attributes,
             listeners,
@@ -80,7 +73,7 @@ export default function QuestionCard() {
             transform,
             transition,
             isDragging
-        } = useSortable({ id: q.id ?? "", disabled: !editing });
+        } = useSortable({ id: p.id ?? "", disabled: !editing });
 
         const style: React.CSSProperties = {
             transition,
@@ -99,19 +92,17 @@ export default function QuestionCard() {
             >
                 <div className="flex flex-row items-center">
                     {editing && (
-                        <Button variant="ghost" className="p-0 mr-3 ml-2 h-6 w-6" onClick={() => deleteQuestion(q.id ?? "")}>
+                        <Button variant="ghost" className="p-0 mr-3 ml-2 h-6 w-6" onClick={() => deletePhase(p.id)}>
                             <Trash2 />
                         </Button>
                     )}
-                    <CreateQuestion asChild existingQuestion={q} disabled={!editing}>
+                    <CreatePhase asChild existingPhase={p} disabled={!editing}>
                         <div className={"flex flex-col " + (editing && "cursor-pointer")}>
                             <h1 className="flex text-md font-semibold">
-                                {q.displayName}
-                                {q.required && <Asterisk className="text-red-500 h-4"></Asterisk>}
+                                {p.displayName}
                             </h1>
-                            <h2 className="text-sm">{q.description}</h2>
                         </div>
-                    </CreateQuestion>
+                    </CreatePhase>
                 </div>
                 {editing && (
                     <div className="h-6 w-6 ml-3">
@@ -129,7 +120,7 @@ export default function QuestionCard() {
         <Card className="w-1/3 flex flex-col">
             <CardHeader className="pb-1">
                 <CardTitle className="flex justify-between items-center">
-                    Application Questions
+                    Recruitment Cycle Phases
                     <Button variant="ghost" onClick={() => setEditing(!editing)}>
                         {editing ? <X /> : <Pencil />}
                     </Button>
@@ -137,22 +128,21 @@ export default function QuestionCard() {
             </CardHeader>
             <CardContent className="flex flex-col flex-grow gap-y-2 divide-y">
                 {!recruitmentCycle && "Select a recruitment cycle first"}
-                {recruitmentCycle && !questions.length && "No questions have been created"}
+                {recruitmentCycle && !phases.length && "No phases have been created"}
                 <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                    <SortableContext
+                    <SortableContext 
                         strategy={verticalListSortingStrategy}
-                        items={questions.map(q => q.id ?? "")}
+                        items={phases.map(p => p.id)}
                     >
-                        {questions.map(q => (
-                            <SortableQuestion q={q} key={q.id}></SortableQuestion>
+                        {phases.map(p => (
+                            <SortablePhase p={p} key={p.id}></SortablePhase>
                         ))}
                     </SortableContext>
                 </DndContext>
             </CardContent>
-            <CardFooter className="flex justify-between flex-wrap gap-y-4">
-                <PreviewApplication questions={questions}></PreviewApplication>
-                <CreateQuestion></CreateQuestion>
+            <CardFooter className="flex flex-wrap gap-y-4">
+                <CreatePhase></CreatePhase>
             </CardFooter>
         </Card>
-    );
+    )
 }

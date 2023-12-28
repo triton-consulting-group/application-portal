@@ -6,6 +6,7 @@ import { api } from "~/trpc/server";
 import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
 import QuestionCard from "./question-card";
 import ApplicationTable from "./application-table";
+import PhaseCard from "./phase-card";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
@@ -40,7 +41,10 @@ export default async function Dashboard() {
                         createOption={true}
                         recruitmentCycles={cycles}
                     ></RecruitmentCycleCombobox>
-                    <QuestionCard></QuestionCard>
+                    <div className="flex gap-x-8">
+                        <QuestionCard></QuestionCard>
+                        <PhaseCard></PhaseCard>
+                    </div>
                 </TabsContent>
             </Tabs>
         </main>

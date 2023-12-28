@@ -3,6 +3,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { applicationQuestionRouter } from "./routers/application-question";
 import { applicationRouter } from "./routers/application";
 import { applicationResponseRouter } from "./routers/application-response";
+import { recruitmentCyclePhaseRouter } from "./routers/recruitment-cycle-phase";
 
 /**
  * This is the primary router for your server.
@@ -11,6 +12,7 @@ import { applicationResponseRouter } from "./routers/application-response";
  */
 export const appRouter = createTRPCRouter({
     recruitmentCycle: recruitmentCycleRouter,
+    recruitmentCyclePhase: recruitmentCyclePhaseRouter,
     applicationQuestion: applicationQuestionRouter,
     application: applicationRouter,
     applicationResponse: applicationResponseRouter,

@@ -78,7 +78,7 @@ export default function CreateQuestion({
     const createQuestion = api.applicationQuestion.create.useMutation();
     const updateQuestion = api.applicationQuestion.update.useMutation();
     const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
-    async function onSubmit(values: z.infer<typeof questionSchema>) {
+    const onSubmit = async (values: z.infer<typeof questionSchema>) => {
         if (existingQuestion) {
             await updateQuestion.mutateAsync(values);
         } else {
