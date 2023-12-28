@@ -12,7 +12,6 @@ import { useEffect, useRef, useState } from "react";
 import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
-import { useRouter } from "next/navigation";
 
 const insertResponseSchema = createInsertSchema(applicationResponses)
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -85,17 +84,17 @@ export function ApplicationForm({
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
                     {questions.map(q => (
-                        <ApplicationQuestion 
+                        <ApplicationQuestion
                             disabled={submitted}
-                            question={q} 
-                            control={form.control} 
+                            question={q}
+                            control={form.control}
                             key={q.id}
                         ></ApplicationQuestion>
                     ))}
                     {!submitted && <Button type="submit">Submit Application</Button>}
                 </form>
             </Form>
-        </div> 
+        </div>
     )
 }
 

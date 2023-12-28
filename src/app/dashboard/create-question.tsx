@@ -45,14 +45,13 @@ export default function CreateQuestion({
         value: type,
         name: type.replaceAll("_", " ").split(" ").map(s => s[0]?.toUpperCase() + s.substring(1)).join(" ")
     }));
-
     const form = useForm<z.infer<typeof questionSchema>>({
         defaultValues: existingQuestion ? existingQuestion : {
             required: false,
             cycleId: recruitmentCycle,
         }
     });
-     
+
     useEffect(() => { form.reset(); }, [existingQuestion])
     useEffect(() => { form.setValue("cycleId", recruitmentCycle) }, [recruitmentCycle]);
 
@@ -69,7 +68,7 @@ export default function CreateQuestion({
             }
             form.setValue("options", opts);
             setOption("");
-        } 
+        }
     }
     function deleteOption(option: string) {
         form.setValue("options", (form.getValues("options") || []).filter(o => o !== option));
@@ -317,7 +316,7 @@ export default function CreateQuestion({
                     {!formValues.type && "Select a question type to see a preview"}
                 </div>
                 <div className="flex justify-end">
-                    <Button type="submit" form="form">{ existingQuestion ? "Update" : "Create"}</Button>
+                    <Button type="submit" form="form">{existingQuestion ? "Update" : "Create"}</Button>
                 </div>
             </DialogContent>
         </Dialog>

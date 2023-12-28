@@ -109,8 +109,26 @@ export const recruitmentCycles = mysqlTable(
 
 export const recruitmentCyclesRelations = relations(recruitmentCycles, ({ many }) => ({
     applicationQuestions: many(applicationQuestions),
-    applications: many(applications)
+    applications: many(applications),
+    recruitmentCyclePhases: many(recruitmentCyclePhases),
 }));
+
+export const recruitmentCyclePhases = mysqlTable(
+    "recruitmentCyclePhase",
+    {
+        id: varchar("id", { length: 255 }).notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+        displayName: varchar("displayName", { length: 255 }).notNull(),
+        order: int("order"),
+        cycleId: varchar("cycleId", { length: 255 }).notNull(),
+    }
+)
+
+export const recruitmentCyclePhasesRelations = relations(recruitmentCyclePhases, ({ one }) => ({
+    recruitmentCycle: one(recruitmentCycles, {
+        fields: [recruitmentCyclePhases.cycleId],
+        references: [recruitmentCycles.id]
+    })
+}))
 
 export const applicationQuestions = mysqlTable(
     "applicationQuestion",

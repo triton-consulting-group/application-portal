@@ -48,8 +48,8 @@ export const applicationQuestionRouter = createTRPCRouter({
         }),
     delete: adminProcedure
         .input(z.string())
-        .mutation(async ({ ctx, input }) => {
-            return await ctx.db.delete(applicationQuestions).where(eq(applicationQuestions.id, input));
+        .mutation(({ ctx, input }) => {
+            return ctx.db.delete(applicationQuestions).where(eq(applicationQuestions.id, input));
         }),
     update: adminProcedure
         .input(createInsertSchema(applicationQuestions, { options: z.string().array() }))
