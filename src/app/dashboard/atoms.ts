@@ -1,10 +1,12 @@
 import { atom } from "jotai";
-import { ApplicationQuestion, RecruitmentCycle, RecruitmentCyclePhase } from "../types";
+import { ApplicationQuestion, ApplicationWithResponses, RecruitmentCycle, RecruitmentCyclePhase } from "../types";
 
 export const recruitmentCyclesAtom = atom<RecruitmentCycle[]>([]);
 
 // The currently selected recruitment cycle from the combo box
 export const selectedRecruitmentCycleAtom = atom<string>("");
+
+export const applicationsAtom = atom<ApplicationWithResponses[]>([]);
 
 const applicationQuestionsPrimitiveAtom = atom<ApplicationQuestion[]>([]);
 export const applicationQuestionsAtom = atom<
