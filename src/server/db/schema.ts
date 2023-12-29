@@ -37,7 +37,8 @@ export const users = mysqlTable("user", {
 
 export const usersRelations = relations(users, ({ many }) => ({
     accounts: many(accounts),
-    applications: many(applications)
+    applications: many(applications),
+    notes: many(applicationNotes)
 }));
 
 export const accounts = mysqlTable(
@@ -205,5 +206,28 @@ export const applicationsRelations = relations(applications, ({ one, many }) => 
         references: [recruitmentCyclePhases.id]
     }),
     applicationResponses: many(applicationResponses),
+    notes: many(applicationNotes),
+}));
+
+export const applicationNotes = mysqlTable(
+    "applicationNote",
+    {
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+        authorId: varchar("authorId", { length: 255 }).notNull(),
+        applicationId: varchar("applicationId", { length: 255 }).notNull(),
+        content: varchar("content", { length: 15000 }).notNull(),
+        title: varchar("title", { length: 255 }).notNull()
+    }
+);
+
+export const applicationNotesRelations = relations(applicationNotes, ({ one }) => ({
+    author: one(users, {
+        fields: [applicationNotes.authorId],
+        references: [users.id]
+    }),
+    application: one(applications, {
+        fields: [applicationNotes.applicationId],
+        references: [applications.id]
+    })
 }));
 

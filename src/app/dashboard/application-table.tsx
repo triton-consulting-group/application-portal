@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Form, FormField, FormItem } from "~/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Badge } from "~/components/ui/badge";
+import CreateNote from "./create-note";
+import ViewNotes from "./view-notes";
 
 type ApplicationWithResponses = Application & Pick<User, "email" | "name"> & { phase?: RecruitmentCyclePhase, responses: ApplicationResponse[] };
 enum FilterType {
@@ -211,7 +213,7 @@ export default function ApplicationTable() {
                                 <TableCell key={res.id}>{res.value}</TableCell>
                             ))}
                             <TableCell>
-                                <DropdownMenu>
+                                <DropdownMenu modal={false}>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost"><MoreVertical /></Button>
                                     </DropdownMenuTrigger>
@@ -221,15 +223,25 @@ export default function ApplicationTable() {
                                                 <span>Set Phase</span>
                                             </DropdownMenuSubTrigger>
                                             <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
+                                                <DropdownMenuSubContent className="mr-1">
                                                     {phases.map(p => (
-                                                        <DropdownMenuItem key={p.id} onClick={() => setApplicationPhase(app.id, p.id)}>
+                                                        <DropdownMenuItem 
+                                                            key={p.id} 
+                                                            onClick={() => setApplicationPhase(app.id, p.id)}
+                                                            className="cursor-pointer"
+                                                        >
                                                             <span>{p.displayName}</span>
                                                         </DropdownMenuItem>
                                                     ))}
                                                 </DropdownMenuSubContent>
                                             </DropdownMenuPortal>
                                         </DropdownMenuSub>
+                                        <ViewNotes
+                                            applicationId={app.id}
+                                            asChild
+                                        >
+                                            <span className="flex cursor-pointer text-sm py-1.5 px-2">Notes</span>
+                                        </ViewNotes>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

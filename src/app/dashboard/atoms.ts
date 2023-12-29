@@ -3,9 +3,7 @@ import { ApplicationQuestion, RecruitmentCycle, RecruitmentCyclePhase } from "..
 
 export const recruitmentCyclesAtom = atom<RecruitmentCycle[]>([]);
 
-/**
- * The currently selected recruitment cycle from the combo box
- */
+// The currently selected recruitment cycle from the combo box
 export const selectedRecruitmentCycleAtom = atom<string>("");
 
 const applicationQuestionsPrimitiveAtom = atom<ApplicationQuestion[]>([]);

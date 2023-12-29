@@ -66,7 +66,7 @@ export default function CreatePhase({
             </DialogTrigger>
             <DialogContent className="flex flex-col h-fit w-max">
                 <DialogHeader>
-                    <DialogTitle >Create a new recruitment cycle phase</DialogTitle>
+                    <DialogTitle>Create a new recruitment cycle phase</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
@@ -91,7 +91,7 @@ export default function CreatePhase({
                             )}
                         />
                         <div className="flex justify-end">
-                            <Button type="submit" form="form">{existingPhase ? "Update" : "Create"}</Button>
+                            <Button type="submit">{existingPhase ? "Update" : "Create"}</Button>
                         </div>
                     </form>
                 </Form>
