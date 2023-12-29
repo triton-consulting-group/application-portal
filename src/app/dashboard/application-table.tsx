@@ -2,11 +2,11 @@
 
 import { useAtom } from "jotai";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
-import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { applicationQuestionsAtom, recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useEffect, useState } from "react";
-import { Application, ApplicationResponse, User } from "../types";
+import { Application, ApplicationResponse, RecruitmentCyclePhase, User } from "../types";
 import { api } from "~/trpc/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { MoreVertical, Plus, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -16,7 +16,7 @@ import { Form, FormField, FormItem } from "~/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Badge } from "~/components/ui/badge";
 
-type ApplicationWithResponses = Application & Pick<User, "email" | "name"> & { responses: ApplicationResponse[] };
+type ApplicationWithResponses = Application & Pick<User, "email" | "name"> & { phase?: RecruitmentCyclePhase, responses: ApplicationResponse[] };
 enum FilterType {
     CONTAIN = "Contains",
     EQUAL = "Equals",
@@ -27,13 +27,17 @@ type Filter = { questionId: string, value: string, type: FilterType };
 export default function ApplicationTable() {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
     const [questions, setQuestions] = useAtom(applicationQuestionsAtom);
+    const [phases, setPhases] = useAtom(recruitmentCyclePhasesAtom);
     const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
     // the applications displayed after filters and search query is applied
     const [displayedApplications, setDisplayedApplications] = useState<ApplicationWithResponses[]>([]);
     const [filters, setFilters] = useState<Filter[]>([]);
+    const [sortColumn, setSortColumn] = useState<string>("");
     const getQuestionsByCycleQuery = api.applicationQuestion.getByCycle.useQuery(cycleId, { enabled: false });
     const getApplicationsByCycleQuery = api.application.getApplicationsByCycleId.useQuery(cycleId, { enabled: false });
     const getResponsesByCycleQuery = api.applicationResponse.getResponsesByCycleId.useQuery(cycleId, { enabled: false });
+    const getPhasesByCycleQuery = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId, { enabled: false });
+    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
 
     const createFilterForm = useForm<Filter>();
     const onFilterFormSave = () => {
@@ -42,16 +46,32 @@ export default function ApplicationTable() {
     }
     const removeFilter = (filter: Filter) => setFilters(filters.filter(f => f !== filter));
 
+    const setApplicationPhase = async (applicationId: string, phaseId: string) => {
+        const updatedApplication = applications.find(a => a.id === applicationId);
+        if (!updatedApplication) throw new Error("Application not found");
+        updatedApplication.phaseId = phaseId;
+        updatedApplication.phase = phases.find(p => p.id === phaseId);
+        setApplications([...applications.filter(a => a.id !== applicationId), updatedApplication])
+        await setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
+    };
+
     useEffect(() => {
         const fetchData = async () => {
-            const questions = (await getQuestionsByCycleQuery.refetch()).data ?? []
+            const [{ data: questions = [] }, { data: responses = [] }, { data: phases = [] }] = await Promise.all([
+                getQuestionsByCycleQuery.refetch(),
+                getResponsesByCycleQuery.refetch(),
+                getPhasesByCycleQuery.refetch()
+            ]);
+
             setQuestions(questions);
-            const responses = (await getResponsesByCycleQuery.refetch()).data as ApplicationResponse[];
+            setPhases(phases);
+
             const applications = ((await getApplicationsByCycleQuery.refetch()).data ?? [])
-                .map(app => ({
+                .map((app): ApplicationWithResponses => ({
                     ...app.application,
                     email: app?.user?.email ?? "",
                     name: app?.user?.name ?? "",
+                    phase: phases.find(p => p.id === app.application.phaseId),
                     responses: responses
                         .filter(r => r.applicationId === app.application.id)
                         .sort((a, b) => {
@@ -70,7 +90,7 @@ export default function ApplicationTable() {
     useEffect(() => {
         setDisplayedApplications(
             filterApplicationsByNameOrEmail("name", (document.getElementById("name-search") as HTMLInputElement).value)
-                .filter(a => 
+                .filter(a =>
                     filters.every(f => {
                         const response = a.responses.find(r => r.questionId === f.questionId)
                         if (!response) return false;
@@ -80,7 +100,6 @@ export default function ApplicationTable() {
                     })
                 )
         )
-
     }, [filters])
 
     /**
@@ -102,14 +121,14 @@ export default function ApplicationTable() {
                     id="name-search"
                 />
                 <div className="flex flex-row gap-x-4">
-                    { filters.map(filter => (
+                    {filters.map(filter => (
                         <Badge className="flex flex-row gap-x-2" key={filter.value}>
                             "{questions.find(q => q.id === filter.questionId)?.displayName}" {filter.type} "{filter.value}"
                             <Button variant="ghost" className="p-0 h-fit" onClick={() => removeFilter(filter)}>
                                 <X className="h-4 w-4"></X>
                             </Button>
                         </Badge>
-                    )) }
+                    ))}
                     <Popover>
                         <PopoverTrigger className="flex gap-x-1 w-fit text-sm">
                             <Plus />
@@ -175,6 +194,7 @@ export default function ApplicationTable() {
                     <TableRow>
                         <TableHead className="whitespace-nowrap">Applicant Name</TableHead>
                         <TableHead className="whitespace-nowrap">Applicant Email</TableHead>
+                        <TableHead className="whitespace-nowrap">Phase</TableHead>
                         {questions.map(q => (
                             <TableHead key={q.id}>{q.displayName}</TableHead>
                         ))}
@@ -186,6 +206,7 @@ export default function ApplicationTable() {
                         <TableRow key={app.id}>
                             <TableCell>{app.name}</TableCell>
                             <TableCell>{app.email}</TableCell>
+                            <TableCell>{app.phase?.displayName ?? ""}</TableCell>
                             {app.responses.map(res => (
                                 <TableCell key={res.id}>{res.value}</TableCell>
                             ))}
@@ -195,7 +216,20 @@ export default function ApplicationTable() {
                                         <Button variant="ghost"><MoreVertical /></Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        Hello
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <span>Set Phase</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    {phases.map(p => (
+                                                        <DropdownMenuItem key={p.id} onClick={() => setApplicationPhase(app.id, p.id)}>
+                                                            <span>{p.displayName}</span>
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

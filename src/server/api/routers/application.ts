@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { applicantProcedure, createTRPCRouter, memberProcedure } from "../trpc";
-import { applicationQuestions, applicationResponses, applications, recruitmentCycles, users } from "~/server/db/schema";
+import { applicationQuestions, applicationResponses, applications, recruitmentCyclePhases, recruitmentCycles, users } from "~/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getValidator } from "~/lib/validate-question";
@@ -113,6 +113,46 @@ export const applicationRouter = createTRPCRouter({
             }
 
             return ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
+        }),
+    updatePhase: memberProcedure
+        .input(z.object({ applicationId: z.string(), phaseId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const [[application], [phase]] = await Promise.all([
+                ctx.db
+                    .select()
+                    .from(applications)
+                    .where(eq(applications.id, input.applicationId)),
+                ctx.db
+                    .select()
+                    .from(recruitmentCyclePhases)
+                    .where(eq(recruitmentCyclePhases.id, input.phaseId)),
+            ]);
+
+            if (!application) {
+                throw new TRPCError({
+                    message: "Application not found",
+                    code: "NOT_FOUND"
+                });
+            }
+
+            if (!phase) {
+                throw new TRPCError({
+                    message: "Recruitment cycle phase not found",
+                    code: "NOT_FOUND"
+                });
+            }
+
+            if (application.cycleId !== phase.cycleId) {
+                throw new TRPCError({
+                    message: "The application and phase do not belong to the same recruitment cycle",
+                    code: "BAD_REQUEST"
+                });
+            }
+
+            return ctx.db
+                .update(applications)
+                .set({ phaseId: input.phaseId })
+                .where(eq(applications.id, input.applicationId));
         })
 });
 
