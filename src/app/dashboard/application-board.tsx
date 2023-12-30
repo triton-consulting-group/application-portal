@@ -7,11 +7,12 @@ import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Mails } from "lucide-react";
+import { Check, Copy, GripVertical, Mails } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import FlickerButton from "~/components/ui/flicker-button";
 
 function SortableApplication({ 
     application,
@@ -72,6 +73,7 @@ function PhaseCard ({
     const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } })
     
     const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
+    const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
 
     useEffect(() => {
         setApplications(displayedApplications.filter(a => a.phaseId === (phase?.id ?? null)))
@@ -82,18 +84,38 @@ function PhaseCard ({
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     {phase ? phase.displayName : "Uncategorized"}
-                    <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Button variant="ghost" onClick={copyEmails}>
-                                    <Mails/>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Copy applicant emails from this phase</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex">
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <FlickerButton
+                                        onClick={copyNames}
+                                        defaultContent={<Copy/>}
+                                        flickerContent={<Check/>}
+                                        duration={1500}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy applicant names from this phase</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <FlickerButton
+                                        onClick={copyEmails}
+                                        defaultContent={<Mails/>}
+                                        flickerContent={<Check/>}
+                                        duration={1500}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy applicant emails from this phase</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </CardTitle>
                 <CardDescription>
                     { phase ? `All applications in phase "${phase.displayName}"` : "All applications without a phase" }
