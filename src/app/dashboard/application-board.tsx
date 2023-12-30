@@ -7,9 +7,11 @@ import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Mails } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 function SortableApplication({ 
     application,
@@ -37,7 +39,7 @@ function SortableApplication({
 
     return (
         <div 
-            className="flex flex-row items-center w-full justify-between bg-card rounded-md -mx-4 px-4 py-2"
+            className="flex flex-row items-center w-full justify-between bg-card rounded-md -ml-4 px-4 py-2"
             style={style} 
             ref={setNodeRef}
         >
@@ -46,10 +48,14 @@ function SortableApplication({
                 <h3>{application.email}</h3>
             </div> 
             <div>
-                <GripVertical
+                <Button 
+                    variant="ghost"
+                    className="-mr-8"
                     {...attributes}
                     {...listeners}
-                />
+                >
+                    <GripVertical/>
+                </Button>
             </div>
         </div>
     )
@@ -64,6 +70,8 @@ function PhaseCard ({
 }) {
     const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
     const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } })
+    
+    const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
 
     useEffect(() => {
         setApplications(displayedApplications.filter(a => a.phaseId === (phase?.id ?? null)))
@@ -72,7 +80,21 @@ function PhaseCard ({
     return (
         <Card className="grow min-w-[28rem] min-h-[28rem] flex flex-col">
             <CardHeader>
-                <CardTitle>{phase ? phase.displayName : "Uncategorized"}</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                    {phase ? phase.displayName : "Uncategorized"}
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Button variant="ghost" onClick={copyEmails}>
+                                    <Mails/>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Copy applicant emails from this phase</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </CardTitle>
                 <CardDescription>
                     { phase ? `All applications in phase "${phase.displayName}"` : "All applications without a phase" }
                 </CardDescription>
@@ -137,6 +159,7 @@ export default function ApplicationBoard({
         if (over.id === modifiedApplication.phaseId || over.id === active.id) return;
         modifiedApplication.phaseId = over.id === "null" ? null : over.id as string; 
         modifiedApplication.phase = phases.find(p => p.id === over.id);
+        // TODO: Handle reordering of applications in same or different column
         setApplications([
             modifiedApplication,
             ...applications.filter(a => a.id !== active.id)
