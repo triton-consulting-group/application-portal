@@ -30,7 +30,7 @@ export default function ApplicationTable({
     };
 
     return (
-        <Table className="mt-4">
+        <Table>
             <TableHeader>
                 <TableRow>
                     <TableHead className="whitespace-nowrap">Applicant Name</TableHead>

@@ -5,7 +5,7 @@ import { ApplicationWithResponses, RecruitmentCyclePhase } from "../types"
 import { applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Copy, GripVertical, Mails } from "lucide-react";
 import { useEffect, useState } from "react";

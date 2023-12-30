@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { ApplicationWithResponses } from "../types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { KanbanSquare, Plus, Table, X } from "lucide-react";
+import { Check, Copy, Download, KanbanSquare, Mails, Plus, Table, X } from "lucide-react";
 import ApplicationTable from "./application-table";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { useForm } from "react-hook-form";
 import { Badge } from "~/components/ui/badge";
 import ApplicationBoard from "./application-board";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import FlickerButton from "~/components/ui/flicker-button";
 
 enum FilterType {
     CONTAIN = "Contains",
@@ -97,90 +99,169 @@ export default function ViewApplications() {
         )
     }, [filters, applications])
 
+    const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
+    const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
+    const exportApplications = () => {
+        const sanitizeString = (s: string): string => {
+            return `"${s.replaceAll('"', '"""')}"`;
+        }
+
+        const blob = new Blob([
+            [
+                ["Name", "Email", "Phase", questions.map(q => sanitizeString(q.displayName))].join(","),
+                ...displayedApplications.map(a => [
+                    sanitizeString(a.name ?? ""),
+                    sanitizeString(a.email),
+                    sanitizeString(a.phase?.displayName ?? ""),
+                    ...a.responses.map(r => sanitizeString(r.value))
+                ].join(","))
+            ].join("\n")
+        ], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style.cssText = "display: none";
+        a.href = url;
+        a.download = "application-export.csv"
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
     return (
         <Tabs defaultValue="table">
-            <TabsList>
-                <TabsTrigger value="table">
-                    <Table />
-                </TabsTrigger>
-                <TabsTrigger value="board">
-                    <KanbanSquare />
-                </TabsTrigger>
-            </TabsList>
-            <div className="flex flex-col gap-y-2 mt-2">
+            <div className="flex justify-between items-center">
                 <Input
                     className="w-fit"
                     placeholder="Search by name..."
                     onChange={(event) => setDisplayedApplications(filterApplicationsByNameOrEmail("name", event.target.value))}
                     id="name-search"
                 />
-                <div className="flex flex-row gap-x-4">
-                    {filters.map(filter => (
-                        <Badge className="flex flex-row gap-x-2" key={filter.value}>
-                            "{questions.find(q => q.id === filter.questionId)?.displayName}" {filter.type} "{filter.value}"
-                            <Button variant="ghost" className="p-0 h-fit" onClick={() => removeFilter(filter)}>
-                                <X className="h-4 w-4"></X>
-                            </Button>
-                        </Badge>
-                    ))}
-                    <Popover>
-                        <PopoverTrigger className="flex gap-x-1 w-fit text-sm">
-                            <Plus />
-                            Add filter
-                        </PopoverTrigger>
-                        <PopoverContent className="flex-col gap-y-2 w-max ml-8">
-                            <Form {...createFilterForm}>
-                                <form onSubmit={createFilterForm.handleSubmit(onFilterFormSave)} className="flex gap-x-4">
-                                    <FormField
-                                        control={createFilterForm.control}
-                                        name="questionId"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Question column..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {questions.map(q => (
-                                                            <SelectItem key={q.id} value={q.id}>{q.displayName}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={createFilterForm.control}
-                                        name="type"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Filter type..." />
+                <TabsList>
+                    <TabsTrigger value="table">
+                        <Table />
+                    </TabsTrigger>
+                    <TabsTrigger value="board">
+                        <KanbanSquare />
+                    </TabsTrigger>
+                </TabsList>
+            </div>
+            <div className="flex flex-col gap-y-2 mt-2">
+                <div className="flex justify-between items-center">
+                    <div className="flex flex-row gap-x-4">
+                        {filters.map(filter => (
+                            <Badge className="flex flex-row gap-x-2" key={filter.value}>
+                                "{questions.find(q => q.id === filter.questionId)?.displayName}" {filter.type} "{filter.value}"
+                                <Button variant="ghost" className="p-0 h-fit" onClick={() => removeFilter(filter)}>
+                                    <X className="h-4 w-4"></X>
+                                </Button>
+                            </Badge>
+                        ))}
+                        <Popover>
+                            <PopoverTrigger className="flex gap-x-1 w-fit text-sm">
+                                <Button variant="ghost">
+                                    <Plus />
+                                    Add filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="flex-col gap-y-2 w-max ml-8">
+                                <Form {...createFilterForm}>
+                                    <form onSubmit={createFilterForm.handleSubmit(onFilterFormSave)} className="flex gap-x-4">
+                                        <FormField
+                                            control={createFilterForm.control}
+                                            name="questionId"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Question column..." />
+                                                        </SelectTrigger>
                                                         <SelectContent>
-                                                            {Object.values(FilterType).map(x => (
-                                                                <SelectItem key={x} value={x}>{x}</SelectItem>
+                                                            {questions.map(q => (
+                                                                <SelectItem key={q.id} value={q.id}>{q.displayName}</SelectItem>
                                                             ))}
                                                         </SelectContent>
-                                                    </SelectTrigger>
-                                                </Select>
-                                            </FormItem>
-                                        )}
+                                                    </Select>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={createFilterForm.control}
+                                            name="type"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Filter type..." />
+                                                            <SelectContent>
+                                                                {Object.values(FilterType).map(x => (
+                                                                    <SelectItem key={x} value={x}>{x}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </SelectTrigger>
+                                                    </Select>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={createFilterForm.control}
+                                            name="value"
+                                            render={({ field }) => (
+                                                <FormItem className="w-fit">
+                                                    <Input type="text" placeholder="Value..." value={field.value ?? ""} onChange={field.onChange} />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit">Save</Button>
+                                    </form>
+                                </Form>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    <div>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button variant="ghost" onClick={exportApplications}>
+                                        <Download />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Export displayed applications to CSV</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <FlickerButton
+                                        onClick={copyNames}
+                                        defaultContent={<Copy />}
+                                        flickerContent={<Check />}
+                                        duration={1500}
                                     />
-                                    <FormField
-                                        control={createFilterForm.control}
-                                        name="value"
-                                        render={({ field }) => (
-                                            <FormItem className="w-fit">
-                                                <Input type="text" placeholder="Value..." value={field.value ?? ""} onChange={field.onChange} />
-                                            </FormItem>
-                                        )}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy displayed applicant names</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <FlickerButton
+                                        onClick={copyEmails}
+                                        defaultContent={<Mails />}
+                                        flickerContent={<Check />}
+                                        duration={1500}
                                     />
-                                    <Button type="submit">Save</Button>
-                                </form>
-                            </Form>
-                        </PopoverContent>
-                    </Popover>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy displayed applicant emails</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </div>
             </div>
             <TabsContent value="table">
