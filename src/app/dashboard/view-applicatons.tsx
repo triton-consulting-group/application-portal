@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { useForm } from "react-hook-form";
 import { Badge } from "~/components/ui/badge";
+import ApplicationBoard from "./application-board";
 
 enum FilterType {
     CONTAIN = "Contains",
@@ -94,7 +95,7 @@ export default function ViewApplications() {
                     })
                 )
         )
-    }, [filters])
+    }, [filters, applications])
 
     return (
         <Tabs defaultValue="table">
@@ -186,7 +187,7 @@ export default function ViewApplications() {
                 <ApplicationTable displayedApplications={displayedApplications}></ApplicationTable>
             </TabsContent>
             <TabsContent value="board">
-
+                <ApplicationBoard displayedApplications={displayedApplications}></ApplicationBoard>
             </TabsContent>
         </Tabs>
     )
