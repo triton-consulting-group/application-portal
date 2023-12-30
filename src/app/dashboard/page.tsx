@@ -7,7 +7,6 @@ import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
 import QuestionCard from "./question-card";
 import PhaseCard from "./phase-card";
 import ViewApplications from "./view-applicatons";
-import Test from "./test";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
@@ -35,7 +34,6 @@ export default async function Dashboard() {
                 </TabsList>
                 <TabsContent value="applications" className="flex flex-col">
                     <ViewApplications></ViewApplications>
-                    {/*<Test></Test>*/}
                 </TabsContent>
                 <TabsContent value="manage">
                     <div className="flex gap-x-8">
