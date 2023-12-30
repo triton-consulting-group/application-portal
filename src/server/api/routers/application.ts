@@ -115,38 +115,40 @@ export const applicationRouter = createTRPCRouter({
             return ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
         }),
     updatePhase: memberProcedure
-        .input(z.object({ applicationId: z.string(), phaseId: z.string() }))
+        .input(z.object({ applicationId: z.string(), phaseId: z.string().nullable() }))
         .mutation(async ({ ctx, input }) => {
-            const [[application], [phase]] = await Promise.all([
-                ctx.db
-                    .select()
-                    .from(applications)
-                    .where(eq(applications.id, input.applicationId)),
-                ctx.db
-                    .select()
-                    .from(recruitmentCyclePhases)
-                    .where(eq(recruitmentCyclePhases.id, input.phaseId)),
-            ]);
+            if (input.phaseId) {
+                const [[application], [phase]] = await Promise.all([
+                    ctx.db
+                        .select()
+                        .from(applications)
+                        .where(eq(applications.id, input.applicationId)),
+                    ctx.db
+                        .select()
+                        .from(recruitmentCyclePhases)
+                        .where(eq(recruitmentCyclePhases.id, input.phaseId)),
+                ]);
 
-            if (!application) {
-                throw new TRPCError({
-                    message: "Application not found",
-                    code: "NOT_FOUND"
-                });
-            }
+                if (!application) {
+                    throw new TRPCError({
+                        message: "Application not found",
+                        code: "NOT_FOUND"
+                    });
+                }
 
-            if (!phase) {
-                throw new TRPCError({
-                    message: "Recruitment cycle phase not found",
-                    code: "NOT_FOUND"
-                });
-            }
+                if (!phase) {
+                    throw new TRPCError({
+                        message: "Recruitment cycle phase not found",
+                        code: "NOT_FOUND"
+                    });
+                }
 
-            if (application.cycleId !== phase.cycleId) {
-                throw new TRPCError({
-                    message: "The application and phase do not belong to the same recruitment cycle",
-                    code: "BAD_REQUEST"
-                });
+                if (application.cycleId !== phase.cycleId) {
+                    throw new TRPCError({
+                        message: "The application and phase do not belong to the same recruitment cycle",
+                        code: "BAD_REQUEST"
+                    });
+                }
             }
 
             return ctx.db

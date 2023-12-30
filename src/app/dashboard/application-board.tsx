@@ -9,6 +9,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useEffect, useState } from "react";
+import { api } from "~/trpc/react";
 
 function SortableApplication({ 
     application,
@@ -111,11 +112,16 @@ export default function ApplicationBoard({
     const [phases] = useAtom(recruitmentCyclePhasesAtom);
     const sensors = useSensors(useSensor(PointerSensor))
     const [active, setActive] = useState<ApplicationWithResponses|null>(null);
+    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
 
-    const handleDragEnd = ({ active, over }: { active: DragEndEvent['active'], over: DragEndEvent['over'] }) => {
+    const handleDragEnd = ({ active }: { active: DragEndEvent['active'], over: DragEndEvent['over'] }) => {
         setActive(null);
-        // active is the application, over should be the phase
-        if (!over) return;
+        // handle drag over already set the phase id, so now just commit the change 
+        const application = applications.find(a => a.id === active.id);
+        if (!application) throw new Error("Dragged application not found");
+        setApplicationPhaseIdMutation.mutateAsync(
+            { applicationId: application.id, phaseId: application.phaseId as string }
+        );
     }
     
     const handleDragStart = ({ active }: { active: DragStartEvent["active"] }) => {
