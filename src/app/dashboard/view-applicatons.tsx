@@ -158,7 +158,7 @@ export default function ViewApplications() {
                             </Badge>
                         ))}
                         <Popover>
-                            <PopoverTrigger className="flex gap-x-1 w-fit text-sm">
+                            <PopoverTrigger className="flex gap-x-1 w-fit text-sm" asChild>
                                 <Button variant="ghost">
                                     <Plus />
                                     Add filter
@@ -221,7 +221,7 @@ export default function ViewApplications() {
                     <div>
                         <TooltipProvider delayDuration={100}>
                             <Tooltip>
-                                <TooltipTrigger>
+                                <TooltipTrigger asChild>
                                     <Button variant="ghost" onClick={exportApplications}>
                                         <Download />
                                     </Button>
@@ -231,36 +231,20 @@ export default function ViewApplications() {
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-                        <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <FlickerButton
-                                        onClick={copyNames}
-                                        defaultContent={<Copy />}
-                                        flickerContent={<Check />}
-                                        duration={1500}
-                                    />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Copy displayed applicant names</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <FlickerButton
-                                        onClick={copyEmails}
-                                        defaultContent={<Mails />}
-                                        flickerContent={<Check />}
-                                        duration={1500}
-                                    />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Copy displayed applicant emails</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <FlickerButton
+                            onClick={copyNames}
+                            defaultContent={<Copy />}
+                            flickerContent={<Check />}
+                            duration={1500}
+                            tooltipContent={<p>Copy displayed applicant names</p>}
+                        />
+                        <FlickerButton
+                            onClick={copyEmails}
+                            defaultContent={<Mails />}
+                            flickerContent={<Check />}
+                            duration={1500}
+                            tooltipContent={<p>Copy displayed applicant emails</p>}
+                        />
                     </div>
                 </div>
             </div>

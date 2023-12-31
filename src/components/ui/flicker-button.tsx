@@ -1,16 +1,19 @@
 import { ReactNode, useState } from "react";
 import { Button } from "./button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 export default function FlickerButton({
     onClick,
     defaultContent,
     flickerContent,
     duration,
+    tooltipContent,
 }: {
     onClick: () => void,
     defaultContent: ReactNode,
     flickerContent: ReactNode,
-    duration: number
+    duration: number,
+    tooltipContent?: ReactNode
 }) {
     const [alt, setAlt] = useState<boolean>(false);
     const handleClick = () => {
@@ -20,8 +23,25 @@ export default function FlickerButton({
     };
 
     return (
-        <Button variant="ghost" onClick={handleClick}>
-            {alt ? flickerContent : defaultContent}
-        </Button>
+        <>
+            { tooltipContent ? (
+                <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" onClick={handleClick}>
+                                {alt ? flickerContent : defaultContent}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {tooltipContent}
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ): (
+                <Button variant="ghost" onClick={handleClick}>
+                    {alt ? flickerContent : defaultContent}
+                </Button>
+            ) }
+        </>
     )
 }
