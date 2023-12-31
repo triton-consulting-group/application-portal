@@ -8,7 +8,8 @@
     "db:studio": "dotenv drizzle-kit studio",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "compile-tests": "tsc test/build test/create-fake-data.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^0.3.2",
