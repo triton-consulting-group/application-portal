@@ -43,7 +43,7 @@ function QuestionContent({
                 defaultValue={field.value}
                 disabled={disabled}
             >
-                <SelectTrigger>
+                <SelectTrigger className="w-max min-w-[12rem]">
                     <SelectValue placeholder={question.placeholder || ""}></SelectValue>
                 </SelectTrigger>
                 <SelectContent>

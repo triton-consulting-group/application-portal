@@ -58,7 +58,7 @@ export default async function Home() {
             </div>
             <main className="flex flex-col grow items-center justify-center text-white">
                 <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-                    <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+                    <h1 className="text-5xl text-center font-extrabold tracking-tight sm:text-[5rem]">
                         Applicant Portal
                     </h1>
                     <div className="flex flex-col items-center gap-4">
