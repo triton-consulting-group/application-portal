@@ -56,6 +56,6 @@ export default function ApplicationDisplayDialog({
                 </Form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 
