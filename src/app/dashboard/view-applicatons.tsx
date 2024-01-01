@@ -52,6 +52,7 @@ export default function ViewApplications() {
         setPhases(phases);
 
         const applications = ((await getApplicationsByCycleQuery.refetch()).data ?? [])
+            .filter(app => app.application.submitted)
             .map((app): ApplicationWithResponses => ({
                 ...app.application,
                 email: app?.user?.email ?? "",
