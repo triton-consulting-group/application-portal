@@ -37,6 +37,7 @@ export default async function Apply() {
                 questions={applicationQuestions}
                 responses={applicationResponses}
                 application={application as Application}
+                cycle={latestCycle}
             ></ApplicationForm>
         </div>
     );

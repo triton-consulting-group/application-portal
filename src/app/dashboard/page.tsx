@@ -24,7 +24,7 @@ export default async function Dashboard() {
             <h1 className="text-3xl">Dashboard</h1>
             <RecruitmentCycleCombobox
                 className="mt-6 mb-2"
-                createOption={false}
+                createOption={session.user.role === Role.ADMIN}
                 recruitmentCycles={cycles}
             ></RecruitmentCycleCombobox>
             <Tabs defaultValue="applications" className="dark h-full">

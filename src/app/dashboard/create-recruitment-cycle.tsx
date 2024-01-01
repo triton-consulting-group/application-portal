@@ -28,9 +28,6 @@ export default function CreateRecruitmentCycle({
     const startTimeWatch = form.watch("startTime");
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (values.endTime <= values.startTime) {
-            return;
-        }
         await createCycle.mutateAsync(values);
         setDialogOpen(false);
         setCycles((await getCycles.refetch()).data ?? []);

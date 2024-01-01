@@ -1,7 +1,7 @@
 "use client";
 
 import { Form } from "~/components/ui/form";
-import type { Application, ApplicationQuestion as ApplicationQuestionType, ApplicationResponse } from "../types";
+import type { Application, ApplicationQuestion as ApplicationQuestionType, ApplicationResponse, RecruitmentCycle } from "../types";
 import { Button } from "~/components/ui/button";
 import { useForm } from "react-hook-form";
 import { ApplicationQuestion } from "~/components/ui/application-question";
@@ -21,10 +21,12 @@ export function ApplicationForm({
     questions,
     responses,
     application,
+    cycle,
 }: {
     questions: ApplicationQuestionType[],
     responses: ApplicationResponse[],
     application: Application,
+    cycle: RecruitmentCycle
 }) {
     const [submitted, setSubmitted] = useState<boolean>(application.submitted);
     const submitApplicationMutation = api.application.submit.useMutation();
@@ -71,16 +73,23 @@ export function ApplicationForm({
         prevSavedForm.current = formWatch;
     }, [formWatch]);
 
+    const formatDate = (d: Date): string => {
+        return `${d.toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric" })} ${d.toLocaleTimeString()}`;
+    }
+
     return (
         <div>
-            <h1 className="text-3xl mb-2">Application</h1>
-            <h2 className="mb-6">
-                {submitted ?
-                    "You've already submitted your application. Keep an eye on your email for any updates to your application." :
-                    `This form autosaves! Feel free to leave and finish your application later. Once you are
-                    ready to submit, click "Submit Application"`
-                }
-            </h2>
+            <div className="flex flex-col gap-y-2 mb-4">
+                <h1 className="text-3xl">Application</h1>
+                <h2 className="mb-2">
+                    {submitted ?
+                        "You've already submitted your application. Keep an eye on your email for any updates to your application." :
+                        `This form autosaves! Feel free to leave and finish your application later. Once you are
+                        ready to submit, click "Submit Application".`
+                    }
+                </h2>
+                {!submitted && <h2>You have until {formatDate(cycle.endTime)} to submit your application.</h2>}
+            </div>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
                     {questions.map(q => (
