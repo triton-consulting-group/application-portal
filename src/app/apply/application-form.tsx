@@ -75,7 +75,7 @@ export function ApplicationForm({
 
     const formatDate = (d: Date): string => {
         return `${d.toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric" })} ${d.toLocaleTimeString()}`;
-    }
+    };
 
     return (
         <div>

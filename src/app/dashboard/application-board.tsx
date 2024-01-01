@@ -2,16 +2,17 @@
 
 import { DndContext, type DragEndEvent, type DragOverEvent, DragOverlay, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
-import { applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
+import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Copy, GripVertical, Mails } from "lucide-react";
+import { Check, Copy, Eye, GripVertical, Mails } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import FlickerButton from "~/components/ui/flicker-button";
+import ApplicationDisplayDialog from "./application-display-dialog";
 
 function SortableApplication({
     application,
@@ -37,17 +38,28 @@ function SortableApplication({
         } : transform),
     };
 
+    const [questions] = useAtom(applicationQuestionsAtom);
+
     return (
         <div
             className="flex flex-row items-center w-full justify-between bg-card rounded-md -ml-4 px-4 py-2"
             style={style}
             ref={setNodeRef}
         >
-            <div className="flex flex-col">
+            <div className="flex flex-col overflow-x-hidden">
                 <h3>{application.name}</h3>
                 <h3>{application.email}</h3>
             </div>
-            <div>
+            <div className="flex">
+                <ApplicationDisplayDialog
+                    application={application}
+                    questions={questions}
+                    asChild
+                >
+                    <Button variant="ghost">
+                        <Eye/>
+                    </Button>
+                </ApplicationDisplayDialog>
                 <Button
                     variant="ghost"
                     className="-mr-8"

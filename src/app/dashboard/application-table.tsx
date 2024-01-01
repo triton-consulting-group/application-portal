@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal
 import { MoreVertical } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import ViewNotes from "./view-notes";
+import ApplicationDisplayDialog from "./application-display-dialog";
 
 export default function ApplicationTable({
     displayedApplications
@@ -79,6 +80,13 @@ export default function ApplicationTable({
                                             </DropdownMenuSubContent>
                                         </DropdownMenuPortal>
                                     </DropdownMenuSub>
+                                    <ApplicationDisplayDialog
+                                        application={app}
+                                        questions={questions}
+                                        asChild
+                                    >
+                                        <span className="flex cursor-pointer text-sm py-1.5 px-2">View Application</span>
+                                    </ApplicationDisplayDialog>
                                     <ViewNotes
                                         applicationId={app.id}
                                         asChild
