@@ -108,7 +108,7 @@ function PhaseCard({
                 <SortableContext
                     items={applications.map(a => a.id)}
                 >
-                    <div ref={setNodeRef} className="flex flex-col h-full">
+                    <div ref={setNodeRef} className="flex flex-col h-full divide-y">
                         {applications.length === 0 ? (
                             <div>
                                 No applications are in this phase yet.
@@ -116,10 +116,12 @@ function PhaseCard({
                         ) : (
                             <>
                                 {applications.map(application => (
-                                    <SortableApplication
-                                        application={application}
-                                        key={application.id}
-                                    />
+                                    <div>
+                                        <SortableApplication
+                                            application={application}
+                                            key={application.id}
+                                        />
+                                    </div>
                                 ))}
                             </>
                         )}
