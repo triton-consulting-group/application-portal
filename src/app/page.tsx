@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import { Instagram } from "lucide-react";
+import Image from "next/image";
 
 export default async function Home() {
     const session = await getServerAuthSession();
@@ -15,7 +16,7 @@ export default async function Home() {
                 return (
                     <div className="flex flex-col items-center gap-y-2">
                         <h2 className="text-center">
-                            We aren't currently accepting applications. <br />
+                            We aren&apos;t currently accepting applications. <br />
                             Follow us on Instagram to be notified of when our Fall and Winter recruitment begins!
                         </h2>
                         <Link
@@ -26,7 +27,7 @@ export default async function Home() {
                             @ucsdtcg
                         </Link>
                     </div>
-                )
+                );
             }
 
             const application = await api.application.getUserApplicationByCycleId.query(activeCycle.id);
@@ -54,7 +55,7 @@ export default async function Home() {
     return (
         <div className="min-h-screen flex flex-col">
             <div className="pl-4 pt-2">
-                <img className="h-12" src="/logo.png" />
+                <Image alt="TCG Logo" height={48} width={136} src="/logo.png" />
             </div>
             <main className="flex flex-col grow items-center justify-center text-white">
                 <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">

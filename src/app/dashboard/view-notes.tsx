@@ -1,8 +1,8 @@
-import { Fragment, ReactNode, useEffect, useState } from "react"
+import { Fragment, type ReactNode, useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-import { ApplicationNote } from "../types";
+import { type ApplicationNote } from "../types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { ChevronsUpDown, Pencil, Trash2, X } from "lucide-react";
 import CreateNote from "./create-note";
@@ -22,28 +22,27 @@ export default function ViewNotes({
     const [userId, setUserId] = useState<string>("");
     const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: false });
     const deleteNoteMutation = api.applicationNote.delete.useMutation();
-    
+
 
     const deleteNote = async (noteId: string) => {
         setNotes(notes.filter(n => n.id !== noteId));
         await deleteNoteMutation.mutateAsync(noteId);
-    }
-
-    const fetchNotes = async () => {
-        setNotes((await getNotesQuery.refetch()).data ?? []);
     };
 
-    const fetchUserId = async() => {
-        setUserId((await getSession())?.user.id ?? "")
-    }
+    const fetchUserId = async () => {
+        setUserId((await getSession())?.user.id ?? "");
+    };
 
     useEffect(() => {
-        fetchNotes();
-    }, [applicationId])
+        const fetchNotes = async () => {
+            setNotes((await getNotesQuery.refetch()).data ?? []);
+        };
+        void fetchNotes();
+    }, [applicationId]);
 
     useEffect(() => {
-        fetchUserId()
-    }, [])
+        void fetchUserId();
+    }, []);
 
     return (
         <Dialog>
@@ -59,7 +58,7 @@ export default function ViewNotes({
                     <DialogTitle>Notes</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col divide-y">
-                    { notes.map(note => (
+                    {notes.map(note => (
                         <Fragment key={note.id}>
                             <Collapsible className="pt-2 first:pt-0 mb-2 last:mb-0">
                                 <div className="flex justify-between items-center">
@@ -72,28 +71,28 @@ export default function ViewNotes({
                                     >
                                         <h3 className={editing ? "cursor-pointer" : ""}>{note.title} - {note.authorName}</h3>
                                     </CreateNote>
-                                    { !editing ? 
+                                    {!editing ?
                                         (
                                             <CollapsibleTrigger asChild>
                                                 <Button variant="ghost" size="sm" className="w-9 p-0">
-                                                    <ChevronsUpDown className="h-4 w-4"/>
+                                                    <ChevronsUpDown className="h-4 w-4" />
                                                 </Button>
                                             </CollapsibleTrigger>
-                                        ) : userId === note.authorId ? 
+                                        ) : userId === note.authorId ?
                                             (
-                                                <Button 
+                                                <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="w-9 p-0" 
+                                                    className="w-9 p-0"
                                                     onClick={() => deleteNote(note.id ?? "")}
                                                 >
                                                     <Trash2 />
                                                 </Button>
-                                            ) : 
+                                            ) :
                                             (
                                                 <Button
                                                     variant="ghost"
-                                                    disabled 
+                                                    disabled
                                                     size="sm"
                                                     className="w-9 p-0"
                                                 ></Button>
@@ -107,15 +106,15 @@ export default function ViewNotes({
                                 </CollapsibleContent>
                             </Collapsible>
                         </Fragment>
-                    )) }     
+                    ))}
                 </div>
                 <DialogFooter>
                     <div className="flex justify-between w-full mt-2">
                         <Button className="flex w-36 items-center justify-between" onClick={() => setEditing(!editing)}>
                             <span>
                                 {editing ? "Stop Editing" : "Edit"}
-                                </span>
-                                {editing ? <X className="h-5 w-5"/> : <Pencil className="h-5 w-5" />}
+                            </span>
+                            {editing ? <X className="h-5 w-5" /> : <Pencil className="h-5 w-5" />}
                         </Button>
                         <CreateNote
                             applicationId={applicationId}
@@ -125,5 +124,5 @@ export default function ViewNotes({
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

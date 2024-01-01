@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { ApplicationQuestion, ApplicationWithResponses, RecruitmentCycle, RecruitmentCyclePhase } from "../types";
+import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCycle, RecruitmentCyclePhase } from "../types";
 
 export const recruitmentCyclesAtom = atom<RecruitmentCycle[]>([]);
 

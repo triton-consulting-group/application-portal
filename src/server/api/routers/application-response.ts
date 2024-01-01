@@ -96,12 +96,12 @@ export const applicationResponseRouter = createTRPCRouter({
                 return ctx.db
                     .update(applicationResponses)
                     .set(input)
-                    .where(eq(applicationResponses.id, response.id))
+                    .where(eq(applicationResponses.id, response.id));
             } else {
                 return ctx.db
                     .insert(applicationResponses)
                     .values(input)
-                    .onDuplicateKeyUpdate({ set: { value: input.value } })
+                    .onDuplicateKeyUpdate({ set: { value: input.value } });
             }
         }),
 });

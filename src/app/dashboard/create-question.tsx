@@ -13,7 +13,7 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationQuestions } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { ReactNode, type KeyboardEvent, useState, useEffect } from "react";
+import { type ReactNode, type KeyboardEvent, useState, useEffect } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -22,7 +22,7 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Badge } from "~/components/ui/badge";
 import { X } from "lucide-react";
 import { ApplicationQuestion } from "~/components/ui/application-question";
-import { ApplicationQuestion as ApplicationQuestionType } from "../types"
+import { type ApplicationQuestion as ApplicationQuestionType } from "../types";
 import { ScrollArea } from "~/components/ui/scroll-area";
 
 const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
@@ -53,8 +53,8 @@ export default function CreateQuestion({
         }
     });
 
-    useEffect(() => { form.reset(); }, [existingQuestion])
-    useEffect(() => { form.setValue("cycleId", recruitmentCycle) }, [recruitmentCycle]);
+    useEffect(() => { form.reset(); }, [existingQuestion]);
+    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle]);
 
     const type = form.watch("type");
     const options = form.watch("options");
@@ -63,7 +63,7 @@ export default function CreateQuestion({
     function onOptionFieldKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter") {
             e.preventDefault();
-            const opts: string[] = form.getValues("options") || [];
+            const opts: string[] = form.getValues("options") ?? [];
             if (!opts.includes(option)) {
                 opts.push(option);
             }
@@ -72,7 +72,7 @@ export default function CreateQuestion({
         }
     }
     function deleteOption(option: string) {
-        form.setValue("options", (form.getValues("options") || []).filter(o => o !== option));
+        form.setValue("options", (form.getValues("options") ?? []).filter(o => o !== option));
     }
 
     const dummyForm = useForm<Record<string, string>>({ defaultValues: { "test": "" } });
@@ -86,14 +86,14 @@ export default function CreateQuestion({
             await createQuestion.mutateAsync(values);
         }
         setOpen(false);
-        setQuestions((await getQuestions.refetch()).data || []);
+        setQuestions((await getQuestions.refetch()).data ?? []);
         setOption("");
         form.reset();
-    }
+    };
 
     const setDialogOpen = (val: boolean): void => {
         setOpen(!disabled && val);
-    }
+    };
 
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
@@ -265,7 +265,7 @@ export default function CreateQuestion({
                                                     Click the "X" on the option badge to delete it.
                                                 </FormDescription>
                                                 <div className="flex gap-x-2 flex-wrap gap-y-2">
-                                                    {(options || []).map(o => (
+                                                    {(options ?? []).map(o => (
                                                         <Badge className="flex flex-row gap-x-2" key={o}>
                                                             {o}
                                                             <Button variant="ghost" className="p-0 h-fit" onClick={() => deleteOption(o)}>
@@ -308,7 +308,7 @@ export default function CreateQuestion({
                         <Form {...dummyForm}>
                             <form>
                                 <ApplicationQuestion
-                                    question={{ id: "test",  ...formValues } as ApplicationQuestionType}
+                                    question={{ id: "test", ...formValues } as ApplicationQuestionType}
                                     control={dummyForm.control}
                                 ></ApplicationQuestion>
                             </form>

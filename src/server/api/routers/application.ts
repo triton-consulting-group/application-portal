@@ -27,7 +27,7 @@ export const applicationRouter = createTRPCRouter({
                 .select()
                 .from(applications)
                 .where(eq(applications.cycleId, input))
-                .leftJoin(users, eq(users.id, applications.userId))
+                .leftJoin(users, eq(users.id, applications.userId));
         }),
     create: applicantProcedure
         .mutation(async ({ ctx }) => {
@@ -108,7 +108,7 @@ export const applicationRouter = createTRPCRouter({
                     throw new TRPCError({
                         message: parsedResult.error.message,
                         code: "BAD_REQUEST"
-                    })
+                    });
                 }
             }
 

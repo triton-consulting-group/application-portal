@@ -1,4 +1,4 @@
-import { type Control, type ControllerRenderProps } from "react-hook-form";
+import { FieldValues, type Control, type ControllerRenderProps } from "react-hook-form";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { FieldType } from "~/server/db/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
@@ -7,7 +7,7 @@ import { Checkbox } from "./checkbox";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 import { Asterisk } from "lucide-react";
-import { ApplicationQuestion } from "~/app/types";
+import { type ApplicationQuestion } from "~/app/types";
 
 function QuestionContent({
     question,
@@ -15,14 +15,15 @@ function QuestionContent({
     disabled,
 }: {
     question: ApplicationQuestion,
-    field: ControllerRenderProps<any, string>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    field: ControllerRenderProps<Record<string, string>, string>,
     disabled?: boolean,
 }) {
     if (question.type === FieldType.STRING) {
-        if ((question.maxLength || 0) < 100) {
+        if ((question.maxLength ?? 0) < 100) {
             return (
                 <Input
-                    placeholder={question.placeholder || ""} {...field}
+                    placeholder={question.placeholder ?? ""} {...field}
                     disabled={disabled}
                 />
             );
@@ -30,7 +31,7 @@ function QuestionContent({
             return (
                 <Textarea
                     disabled={disabled}
-                    placeholder={question.placeholder || ""}
+                    placeholder={question.placeholder ?? ""}
                     className="resize-none"
                     {...field}
                 />
@@ -44,10 +45,10 @@ function QuestionContent({
                 disabled={disabled}
             >
                 <SelectTrigger className="w-max min-w-[12rem]">
-                    <SelectValue placeholder={question.placeholder || ""}></SelectValue>
+                    <SelectValue placeholder={question.placeholder ?? ""}></SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                    {(question.options || []).map(o => (
+                    {(question.options ?? []).map(o => (
                         <SelectItem value={o} key={o}>{o}</SelectItem>
                     ))}
                 </SelectContent>
@@ -60,7 +61,7 @@ function QuestionContent({
                 defaultValue={field.value}
                 disabled={disabled}
             >
-                {(question.options || []).map(o => (
+                {(question.options ?? []).map(o => (
                     <FormItem className="flex items-center space-x-3 space-y-0" key={o}>
                         <FormControl>
                             <RadioGroupItem value={o} />
@@ -73,7 +74,7 @@ function QuestionContent({
     } else if (question.type === FieldType.CHECKBOX) {
         return (
             <>
-                {(question.options || []).map(o => (
+                {(question.options ?? []).map(o => (
                     <FormItem
                         key={o}
                         className="flex flex-row items-start space-x-3 space-y-0"
@@ -130,13 +131,13 @@ export function ApplicationQuestion({
     disabled,
 }: {
     question: ApplicationQuestion
-    control: Control<any>,
+    control: Control<FieldValues>,
     disabled?: boolean,
 }) {
     return (
         <FormField
             control={control}
-            name={question.id || question.displayName}
+            name={question.id ?? question.displayName}
             render={({ field }) => (
                 <FormItem>
                     <FormLabel className="flex text-md text-semibold">

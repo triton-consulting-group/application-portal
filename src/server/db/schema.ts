@@ -122,7 +122,7 @@ export const recruitmentCyclePhases = mysqlTable(
         order: int("order"),
         cycleId: varchar("cycleId", { length: 255 }).notNull(),
     }
-)
+);
 
 export const recruitmentCyclePhasesRelations = relations(recruitmentCyclePhases, ({ many, one }) => ({
     recruitmentCycle: one(recruitmentCycles, {
@@ -130,7 +130,7 @@ export const recruitmentCyclePhasesRelations = relations(recruitmentCyclePhases,
         references: [recruitmentCycles.id]
     }),
     applications: many(applications),
-}))
+}));
 
 export const applicationQuestions = mysqlTable(
     "applicationQuestion",

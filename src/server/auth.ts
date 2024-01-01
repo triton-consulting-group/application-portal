@@ -1,5 +1,5 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { InferSelectModel, eq } from "drizzle-orm";
+import { type InferSelectModel, eq } from "drizzle-orm";
 import {
     getServerSession,
     type DefaultSession,
@@ -10,7 +10,7 @@ import { env } from "~/env.mjs";
 import { db } from "~/server/db";
 import { mysqlTable, sessions, users } from "~/server/db/schema";
 import { Role } from "./db/types";
-import { User } from "~/app/types";
+import type { User } from "~/app/types";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -58,15 +58,15 @@ export const authOptions: NextAuthOptions = {
     adapter: {
         ...DrizzleAdapter(db, mysqlTable),
         async createUser(data) {
-            const id = crypto.randomUUID()
+            const id = crypto.randomUUID();
 
-            await db.insert(users).values({ ...data, id: id, role: Role.APPLICANT })
+            await db.insert(users).values({ ...data, id: id, role: Role.APPLICANT });
 
             const [createdUser] = await db
                 .select()
                 .from(users)
-                .where(eq(users.id, id))
-            return createdUser as User
+                .where(eq(users.id, id));
+            return createdUser as User;
         },
         // https://github.com/nextauthjs/next-auth/pull/8561
         async getSessionAndUser(data) {

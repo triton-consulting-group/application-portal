@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -8,7 +8,7 @@ import { useAtom } from "jotai";
 import { recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { api } from "~/trpc/react";
 import CreatePhase from "./create-phase";
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -21,48 +21,47 @@ export default function PhaseCard() {
     const deletePhaseMutation = api.recruitmentCyclePhase.delete.useMutation();
     const sensors = useSensors(useSensor(PointerSensor));
 
-    const fetchPhases = async () => {
-        if (recruitmentCycle) {
-            const phases = (await getPhases.refetch()).data || [];
-            setPhases(phases);
-        }
-    };
-
-    const deletePhase = async(id: string) => {
+    const deletePhase = async (id: string) => {
         setPhases(phases.filter(p => p.id !== id));
-        await deletePhaseMutation.mutateAsync(id);
-    }
+        void await deletePhaseMutation.mutateAsync(id);
+    };
 
     const handleDragEnd = (e: DragEndEvent) => {
         const { active, over } = e;
         if (over && active.id !== over.id) {
             const activeIdx = phases.findIndex(q => q.id === active.id);
             const overIdx = phases.findIndex(q => q.id === over.id);
-            let newQuestions = [...phases]
+            let newQuestions = [...phases];
             // if next to eachother, swap order
             // else insert at hover over position and move everything else back
             if (Math.abs(activeIdx - overIdx) === 1) {
                 const tmp = newQuestions[activeIdx];
-                newQuestions[activeIdx] = newQuestions[overIdx] as typeof phases[number];
-                newQuestions[overIdx] = tmp as typeof phases[number];
+                newQuestions[activeIdx] = newQuestions[overIdx]!;
+                newQuestions[overIdx] = tmp!;
             } else {
                 newQuestions = newQuestions.filter(q => q.id !== active.id);
                 newQuestions.splice(
-                    overIdx, 
+                    overIdx,
                     0,
-                    phases[activeIdx] as typeof phases[number]
+                    phases[activeIdx]!
                 );
             }
             setPhases(newQuestions.map((q, idx) => {
                 q.order = idx;
                 return q;
             }));
-            reorderPhases.mutateAsync(newQuestions.map(q => q.id ?? ""));
+            void reorderPhases.mutateAsync(newQuestions.map(q => q.id ?? ""));
         }
     };
 
     useEffect(() => {
-        fetchPhases();
+        const fetchPhases = async () => {
+            if (recruitmentCycle) {
+                const phases = (await getPhases.refetch()).data ?? [];
+                setPhases(phases);
+            }
+        };
+        void fetchPhases();
     }, [recruitmentCycle]);
 
     function SortablePhase({ p }: { p: typeof phases[number] }) {
@@ -113,7 +112,7 @@ export default function PhaseCard() {
                     </div>
                 )}
             </div>
-        )
+        );
     }
 
     return (
@@ -130,7 +129,7 @@ export default function PhaseCard() {
                 {!recruitmentCycle && "Select a recruitment cycle first"}
                 {recruitmentCycle && !phases.length && "No phases have been created"}
                 <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                    <SortableContext 
+                    <SortableContext
                         strategy={verticalListSortingStrategy}
                         items={phases.map(p => p.id)}
                     >
@@ -144,5 +143,5 @@ export default function PhaseCard() {
                 <CreatePhase></CreatePhase>
             </CardFooter>
         </Card>
-    )
+    );
 }

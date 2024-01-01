@@ -20,7 +20,7 @@ export type ApplicationNote = z.infer<typeof applicationNoteSchema>;
 const applicationResponseSchema = createSelectSchema(applicationResponses);
 export type ApplicationResponse = z.infer<typeof applicationResponseSchema>;
 
-const userSchema = createSelectSchema(users)
+const userSchema = createSelectSchema(users);
 export type User = z.infer<typeof userSchema>;
 
 export type ApplicationWithResponses = Application & Pick<User, "email" | "name"> & { phase?: RecruitmentCyclePhase, responses: ApplicationResponse[] };

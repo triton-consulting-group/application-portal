@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
-import { ApplicationWithResponses } from "../types";
+import { type ApplicationWithResponses } from "../types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Check, Copy, Download, KanbanSquare, Loader2, Mails, Plus, Table, X } from "lucide-react";
 import ApplicationTable from "./application-table";
@@ -40,39 +40,39 @@ export default function ViewApplications() {
     const getResponsesByCycleQuery = api.applicationResponse.getResponsesByCycleId.useQuery(cycleId, { enabled: false });
     const getPhasesByCycleQuery = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId, { enabled: false });
 
-    const fetchData = async () => {
-        setLoading(true);
-        const [{ data: questions = [] }, { data: responses = [] }, { data: phases = [] }] = await Promise.all([
-            getQuestionsByCycleQuery.refetch(),
-            getResponsesByCycleQuery.refetch(),
-            getPhasesByCycleQuery.refetch()
-        ]);
-
-        setQuestions(questions);
-        setPhases(phases);
-
-        const applications = ((await getApplicationsByCycleQuery.refetch()).data ?? [])
-            .filter(app => app.application.submitted)
-            .map((app): ApplicationWithResponses => ({
-                ...app.application,
-                email: app?.user?.email ?? "",
-                name: app?.user?.name ?? "",
-                phase: phases.find(p => p.id === app.application.phaseId),
-                responses: responses
-                    .filter(r => r.applicationId === app.application.id)
-                    .sort((a, b) => {
-                        const questionA = questions.find(q => q.id === a.questionId);
-                        const questionB = questions.find(q => q.id === b.questionId);
-                        return (questionA?.order ?? Number.MAX_SAFE_INTEGER) - (questionB?.order ?? Number.MAX_SAFE_INTEGER)
-                    })
-            }));
-        setApplications(applications);
-        setDisplayedApplications(applications);
-        setLoading(false);
-    };
-
     useEffect(() => {
-        fetchData();
+        const fetchData = async () => {
+            setLoading(true);
+            const [{ data: questions = [] }, { data: responses = [] }, { data: phases = [] }] = await Promise.all([
+                getQuestionsByCycleQuery.refetch(),
+                getResponsesByCycleQuery.refetch(),
+                getPhasesByCycleQuery.refetch()
+            ]);
+
+            setQuestions(questions);
+            setPhases(phases);
+
+            const applications = ((await getApplicationsByCycleQuery.refetch()).data ?? [])
+                .filter(app => app.application.submitted)
+                .map((app): ApplicationWithResponses => ({
+                    ...app.application,
+                    email: app?.user?.email ?? "",
+                    name: app?.user?.name ?? "",
+                    phase: phases.find(p => p.id === app.application.phaseId),
+                    responses: responses
+                        .filter(r => r.applicationId === app.application.id)
+                        .sort((a, b) => {
+                            const questionA = questions.find(q => q.id === a.questionId);
+                            const questionB = questions.find(q => q.id === b.questionId);
+                            return (questionA?.order ?? Number.MAX_SAFE_INTEGER) - (questionB?.order ?? Number.MAX_SAFE_INTEGER);
+                        })
+                }));
+            setApplications(applications);
+            setDisplayedApplications(applications);
+            setLoading(false);
+        };
+
+        void fetchData();
     }, [cycleId]);
 
     const [filters, setFilters] = useState<Filter[]>([]);
@@ -81,35 +81,36 @@ export default function ViewApplications() {
     const onFilterFormSave = () => {
         setFilters([createFilterForm.getValues(), ...filters]);
         createFilterForm.reset();
-    }
+    };
     const removeFilter = (filter: Filter) => setFilters(filters.filter(f => f !== filter));
-    const filterApplicationsByNameOrEmail = (
-        field: keyof Pick<ApplicationWithResponses, "name" | "email">, value: string
-    ): ApplicationWithResponses[] => {
-        return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase()));
-    }
 
     useEffect(() => {
+        const filterApplicationsByNameOrEmail = (
+            field: keyof Pick<ApplicationWithResponses, "name" | "email">, value: string
+        ): ApplicationWithResponses[] => {
+            return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase()));
+        };
+
         setDisplayedApplications(
             filterApplicationsByNameOrEmail("name", searchQuery)
                 .filter(a =>
                     filters.every(f => {
-                        const response = a.responses.find(r => r.questionId === f.questionId)
+                        const response = a.responses.find(r => r.questionId === f.questionId);
                         if (!response) return false;
                         if (f.type === FilterType.EQUAL) return response.value.trim().toLowerCase() === f.value.toLowerCase();
                         if (f.type === FilterType.NOT_EQUAL) return response.value.trim().toLowerCase() !== f.value.toLowerCase();
                         if (f.type === FilterType.CONTAIN) return response.value.trim().toLowerCase().includes(f.value.toLowerCase());
                     })
                 )
-        )
-    }, [filters, applications, searchQuery])
+        );
+    }, [filters, applications, searchQuery]);
 
     const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
     const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
     const exportApplications = () => {
         const sanitizeString = (s: string): string => {
             return `"${s.replaceAll('"', '"""')}"`;
-        }
+        };
 
         const blob = new Blob([
             [
@@ -128,10 +129,10 @@ export default function ViewApplications() {
         document.body.appendChild(a);
         a.style.cssText = "display: none";
         a.href = url;
-        a.download = "application-export.csv"
+        a.download = "application-export.csv";
         a.click();
         window.URL.revokeObjectURL(url);
-    }
+    };
 
     return (
         <>
@@ -269,5 +270,5 @@ export default function ViewApplications() {
                 </Tabs>
             )}
         </>
-    )
+    );
 }

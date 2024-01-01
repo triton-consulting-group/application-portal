@@ -1,11 +1,11 @@
-import { ReactNode, useEffect, useState } from "react"
-import { RecruitmentCyclePhase } from "../types"
+import { type ReactNode, useEffect, useState } from "react";
+import { type RecruitmentCyclePhase } from "../types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { createInsertSchema } from "drizzle-zod";
 import { recruitmentCyclePhases } from "~/server/db/schema";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { type z } from "zod";
 import { useAtom } from "jotai";
 import { recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "~/components/ui/form";
@@ -30,16 +30,16 @@ export default function CreatePhase({
     const [open, setOpen] = useState<boolean>(false);
     const setDialogOpen = (val: boolean): void => {
         setOpen(!disabled && val);
-    }
+    };
 
     const form = useForm<z.infer<typeof phaseSchema>>({
         defaultValues: existingPhase ? existingPhase : {
             cycleId: recruitmentCycle
         }
-    })
+    });
 
-    useEffect(() => { form.reset(); }, [existingPhase])
-    useEffect(() => { form.setValue("cycleId", recruitmentCycle) }, [recruitmentCycle]);
+    useEffect(() => { form.reset(); }, [existingPhase]);
+    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle]);
 
     const createPhase = api.recruitmentCyclePhase.create.useMutation();
     const updatePhase = api.recruitmentCyclePhase.update.useMutation();
@@ -51,9 +51,9 @@ export default function CreatePhase({
             await createPhase.mutateAsync(values);
         }
         setOpen(false);
-        setPhases((await getPhases.refetch()).data || []);
+        setPhases((await getPhases.refetch()).data ?? []);
         form.reset();
-    }
+    };
 
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
@@ -97,5 +97,5 @@ export default function CreatePhase({
                 </Form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

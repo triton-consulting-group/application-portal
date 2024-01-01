@@ -21,7 +21,7 @@ import CreateRecruitmentCycle from "./create-recruitment-cycle";
 import { useHydrateAtoms } from 'jotai/utils';
 import { recruitmentCyclesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
-import { RecruitmentCycle } from "../types";
+import { type RecruitmentCycle } from "../types";
 
 export default function RecruitmentCycleCombobox({
     createOption, recruitmentCycles, className
@@ -36,16 +36,16 @@ export default function RecruitmentCycleCombobox({
     const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
 
     React.useEffect(() => {
-        setValue(cycles?.[0]?.id || "");
+        setValue(cycles?.[0]?.id ?? "");
     }, [cycles]);
 
 
     function CreateNew({ createOption }: { createOption: boolean }) {
+        const [open, setOpen] = React.useState<boolean>(false);
+
         if (!createOption) {
             return null;
         }
-
-        const [open, setOpen] = React.useState<boolean>(false);
 
         return (
             <CommandItem className="cursor-pointer">

@@ -1,7 +1,7 @@
 "use client";
 
-import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { ApplicationWithResponses, RecruitmentCyclePhase } from "../types"
+import { DndContext, type DragEndEvent, type DragOverEvent, DragOverlay, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import type { ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
 import { applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -11,7 +11,6 @@ import { Check, Copy, GripVertical, Mails } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import FlickerButton from "~/components/ui/flicker-button";
 
 function SortableApplication({
@@ -59,7 +58,7 @@ function SortableApplication({
                 </Button>
             </div>
         </div>
-    )
+    );
 }
 
 function PhaseCard({
@@ -70,14 +69,14 @@ function PhaseCard({
     phase: RecruitmentCyclePhase | null
 }) {
     const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
-    const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } })
+    const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } });
 
     const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
     const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
 
     useEffect(() => {
-        setApplications(displayedApplications.filter(a => a.phaseId === (phase?.id ?? null)))
-    }, [displayedApplications, phase])
+        setApplications(displayedApplications.filter(a => a.phaseId === (phase?.id ?? null)));
+    }, [displayedApplications, phase]);
 
     return (
         <Card className="grow min-w-[28rem] min-h-[28rem] flex flex-col">
@@ -128,7 +127,7 @@ function PhaseCard({
                 </SortableContext>
             </CardContent>
         </Card>
-    )
+    );
 }
 
 export default function ApplicationBoard({
@@ -138,7 +137,7 @@ export default function ApplicationBoard({
 }) {
     const [applications, setApplications] = useAtom(applicationsAtom);
     const [phases] = useAtom(recruitmentCyclePhasesAtom);
-    const sensors = useSensors(useSensor(PointerSensor))
+    const sensors = useSensors(useSensor(PointerSensor));
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
 
@@ -147,16 +146,16 @@ export default function ApplicationBoard({
         // handle drag over already set the phase id, so now just commit the change 
         const application = applications.find(a => a.id === active.id);
         if (!application) throw new Error("Dragged application not found");
-        setApplicationPhaseIdMutation.mutateAsync(
-            { applicationId: application.id, phaseId: application.phaseId as string }
+        void setApplicationPhaseIdMutation.mutateAsync(
+            { applicationId: application.id, phaseId: application.phaseId }
         );
-    }
+    };
 
     const handleDragStart = ({ active }: { active: DragStartEvent["active"] }) => {
         const activeApplication = displayedApplications.find(a => a.id === active.id);
         if (!activeApplication) throw new Error("Active application not found");
         setActive(activeApplication);
-    }
+    };
 
     const handleDragOver = ({ active, over }: { active: DragOverEvent['active'], over: DragOverEvent['over'] }) => {
         if (!over) return;
@@ -167,7 +166,7 @@ export default function ApplicationBoard({
         // over.id can be an app or phase id, this finds the phase no matter what
         const overApp = applications.find(a => a.id === over.id);
         const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
-        modifiedApplication.phaseId = phase?.id ?? null
+        modifiedApplication.phaseId = phase?.id ?? null;
         modifiedApplication.phase = phases.find(p => p.id === over.id);
 
 
@@ -175,7 +174,7 @@ export default function ApplicationBoard({
             modifiedApplication,
             ...applications.filter(a => a.id !== active.id)
         ]);
-    }
+    };
 
     return (
         <div className="flex flex-row shrink-0 gap-x-5 mb-2 overflow-x-scroll">
@@ -196,5 +195,5 @@ export default function ApplicationBoard({
                 </DragOverlay>
             </DndContext>
         </div>
-    )
+    );
 }

@@ -1,13 +1,13 @@
-import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
-import { ApplicationNote } from "../types";
+import { type Dispatch, type ReactNode, type SetStateAction, useEffect, useState } from "react";
+import { type ApplicationNote } from "../types";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationNotes } from "~/server/db/schema";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { api } from "~/trpc/react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
-import { Button } from "~/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/ui/form"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 
@@ -31,7 +31,7 @@ export default function CreateNote({
     const [open, setOpen] = useState<boolean>(false);
     const setDialogOpen = (val: boolean): void => {
         setOpen(!disabled && val);
-    }
+    };
 
     const form = useForm<z.infer<typeof noteSchema>>({
         defaultValues: existingNote ? existingNote : {
@@ -39,22 +39,22 @@ export default function CreateNote({
         }
     });
 
-    useEffect(() => { form.reset(); }, [existingNote])
+    useEffect(() => { form.reset(); }, [existingNote]);
 
     const createNote = api.applicationNote.create.useMutation();
     const updateNote = api.applicationNote.update.useMutation();
-    const getNotes = api.applicationNote.getByApplicationId.useQuery(applicationId, {enabled: false});
+    const getNotes = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: false });
 
     const onSubmit = async (values: z.infer<typeof noteSchema>) => {
         if (existingNote) {
             await updateNote.mutateAsync({ noteId: existingNote.id, title: values.title, content: values.content });
         } else {
-            await createNote.mutateAsync(values)
+            await createNote.mutateAsync(values);
         }
         setOpen(false);
         form.reset();
-        setNotes((await getNotes.refetch()).data ?? []) 
-    }
+        setNotes((await getNotes.refetch()).data ?? []);
+    };
 
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
@@ -111,7 +111,7 @@ export default function CreateNote({
                 </Form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 
 

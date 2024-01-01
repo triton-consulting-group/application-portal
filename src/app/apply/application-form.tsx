@@ -1,19 +1,19 @@
 "use client";
 
 import { Form } from "~/components/ui/form";
-import { Application, ApplicationQuestion as ApplicationQuestionType, ApplicationResponse } from "../types";
+import type { Application, ApplicationQuestion as ApplicationQuestionType, ApplicationResponse } from "../types";
 import { Button } from "~/components/ui/button";
 import { useForm } from "react-hook-form";
 import { ApplicationQuestion } from "~/components/ui/application-question";
 import { z } from "zod";
 import { getValidator } from "~/lib/validate-question";
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
 
-const insertResponseSchema = createInsertSchema(applicationResponses)
+const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
 const UPDATE_INTERVAL = 1000;
 
@@ -42,10 +42,10 @@ export function ApplicationForm({
         resolver: zodResolver(formSchema),
         defaultValues: defaultValues
     });
-    const formWatch = form.watch();
+    const formWatch: Record<string, string> = form.watch();
     const prevSavedForm = useRef(defaultValues);
     const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
-    const updateQueue = useRef<{ [key: string]: ApplicationResponseInsert }>({});
+    const updateQueue = useRef<Record<string, ApplicationResponseInsert>>({});
     const createOrUpdateResponseMutation = api.applicationResponse.createOrUpdate.useMutation();
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export function ApplicationForm({
                 updateQueue.current[questionId] = {
                     questionId: questionId,
                     applicationId: application.id,
-                    value: formWatch[questionId],
+                    value: formWatch[questionId]!,
                     ... (response ? { id: response.id } : {})
                 };
             }
@@ -64,9 +64,9 @@ export function ApplicationForm({
         clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
             for (const key in updateQueue.current) {
-                createOrUpdateResponseMutation.mutate(updateQueue.current[key] as ApplicationResponseInsert);
+                createOrUpdateResponseMutation.mutate(updateQueue.current[key]!);
             }
-            updateQueue.current = {}
+            updateQueue.current = {};
         }, UPDATE_INTERVAL);
         prevSavedForm.current = formWatch;
     }, [formWatch]);
@@ -95,6 +95,6 @@ export function ApplicationForm({
                 </form>
             </Form>
         </div>
-    )
+    );
 }
 

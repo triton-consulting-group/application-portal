@@ -1,4 +1,4 @@
-import { ApplicationQuestion as ApplicationQuestionType } from "../types"
+import { type ApplicationQuestion as ApplicationQuestionType } from "../types";
 import { Form } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
 import { ApplicationQuestion } from "~/components/ui/application-question";
@@ -45,5 +45,5 @@ export function PreviewApplication({
                 </Form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

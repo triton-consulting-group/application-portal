@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "./button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
@@ -18,13 +18,13 @@ export default function FlickerButton({
     const [alt, setAlt] = useState<boolean>(false);
     const handleClick = () => {
         setAlt(true);
-        setTimeout(() => setAlt(false), duration)
+        setTimeout(() => setAlt(false), duration);
         onClick();
     };
 
     return (
         <>
-            { tooltipContent ? (
+            {tooltipContent ? (
                 <TooltipProvider delayDuration={100}>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -37,11 +37,11 @@ export default function FlickerButton({
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-            ): (
+            ) : (
                 <Button variant="ghost" onClick={handleClick}>
                     {alt ? flickerContent : defaultContent}
                 </Button>
-            ) }
+            )}
         </>
-    )
+    );
 }

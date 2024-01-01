@@ -14,7 +14,7 @@ import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { Asterisk, GripVertical, Pencil, Trash2, X } from "lucide-react";
 import CreateQuestion from "./create-question";
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { PreviewApplication } from "./preview-application";
@@ -33,33 +33,26 @@ export default function QuestionCard() {
         if (over && active.id !== over.id) {
             const activeIdx = questions.findIndex(q => q.id === active.id);
             const overIdx = questions.findIndex(q => q.id === over.id);
-            let newQuestions = [...questions]
+            let newQuestions = [...questions];
             // if next to eachother, swap order
             // else insert at hover over position and move everything else back
             if (Math.abs(activeIdx - overIdx) === 1) {
                 const tmp = newQuestions[activeIdx];
-                newQuestions[activeIdx] = newQuestions[overIdx] as typeof questions[number];
-                newQuestions[overIdx] = tmp as typeof questions[number];
+                newQuestions[activeIdx] = newQuestions[overIdx]!;
+                newQuestions[overIdx] = tmp!;
             } else {
                 newQuestions = newQuestions.filter(q => q.id !== active.id);
                 newQuestions.splice(
-                    overIdx, 
+                    overIdx,
                     0,
-                    questions[activeIdx] as typeof questions[number]
+                    questions[activeIdx]!
                 );
             }
             setQuestions(newQuestions.map((q, idx) => {
                 q.order = idx;
                 return q;
             }));
-            reorderQuestionMutation.mutateAsync(newQuestions.map(q => q.id ?? ""));
-        }
-    };
-
-    const fetchQuestions = async () => {
-        if (recruitmentCycle) {
-            const questions = (await getQuestions.refetch()).data || [];
-            setQuestions(questions);
+            void reorderQuestionMutation.mutateAsync(newQuestions.map(q => q.id ?? ""));
         }
     };
 
@@ -69,7 +62,13 @@ export default function QuestionCard() {
     };
 
     React.useEffect(() => {
-        fetchQuestions();
+        const fetchQuestions = async () => {
+            if (recruitmentCycle) {
+                const questions = (await getQuestions.refetch()).data ?? [];
+                setQuestions(questions);
+            }
+        };
+        void fetchQuestions();
     }, [recruitmentCycle]);
 
     function SortableQuestion({ q }: { q: typeof questions[number] }) {
@@ -122,7 +121,7 @@ export default function QuestionCard() {
                     </div>
                 )}
             </div>
-        )
+        );
     }
 
     return (

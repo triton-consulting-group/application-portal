@@ -16,12 +16,12 @@ export const applicationNoteRouter = createTRPCRouter({
                 .select()
                 .from(applicationNotes)
                 .innerJoin(users, eq(users.id, applicationNotes.authorId))
-                .where(eq(applicationNotes.applicationId, input))
-            
+                .where(eq(applicationNotes.applicationId, input));
+
             return results.map(r => ({
                 ...r.applicationNote,
                 authorName: r.user.name
-            }))
+            }));
         }),
     create: memberProcedure
         .input(createInsertSchema(applicationNotes, { authorId: z.string().optional() }))
@@ -70,7 +70,7 @@ export const applicationNoteRouter = createTRPCRouter({
                 .where(and(
                     eq(applicationNotes.authorId, ctx.session.user.id),
                     eq(applicationNotes.id, input)
-                ))
+                ));
 
             if (result.rowsAffected === 0) {
                 throw new TRPCError({

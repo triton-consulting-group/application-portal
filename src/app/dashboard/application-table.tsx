@@ -1,23 +1,23 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
-import { ApplicationWithResponses } from "../types";
+import type { ApplicationWithResponses } from "../types";
 import { api } from "~/trpc/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import ViewNotes from "./view-notes";
 
-export default function ApplicationTable({ 
-    displayedApplications 
-}: { 
-    displayedApplications: ApplicationWithResponses[] 
+export default function ApplicationTable({
+    displayedApplications
+}: {
+    displayedApplications: ApplicationWithResponses[]
 }) {
     const [questions] = useAtom(applicationQuestionsAtom);
     const [phases] = useAtom(recruitmentCyclePhasesAtom);
-    const [applications, setApplications] = useAtom(applicationsAtom)
+    const [applications, setApplications] = useAtom(applicationsAtom);
 
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
     const setApplicationPhase = async (applicationId: string, phaseId: string) => {
@@ -25,7 +25,7 @@ export default function ApplicationTable({
         if (!updatedApplication) throw new Error("Application not found");
         updatedApplication.phaseId = phaseId;
         updatedApplication.phase = phases.find(p => p.id === phaseId);
-        setApplications([...applications.filter(a => a.id !== applicationId), updatedApplication])
+        setApplications([...applications.filter(a => a.id !== applicationId), updatedApplication]);
         await setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
     };
 
@@ -64,8 +64,8 @@ export default function ApplicationTable({
                                         <DropdownMenuPortal>
                                             <DropdownMenuSubContent className="mr-1">
                                                 {phases.map(p => (
-                                                    <DropdownMenuItem 
-                                                        key={p.id} 
+                                                    <DropdownMenuItem
+                                                        key={p.id}
                                                         onClick={() => setApplicationPhase(app.id, p.id)}
                                                         className="cursor-pointer"
                                                     >
@@ -88,6 +88,6 @@ export default function ApplicationTable({
                 ))}
             </TableBody>
         </Table>
-    )
+    );
 }
 

@@ -33,7 +33,7 @@ export default function CreateRecruitmentCycle({
         }
         await createCycle.mutateAsync(values);
         setDialogOpen(false);
-        setCycles((await getCycles.refetch()).data || []);
+        setCycles((await getCycles.refetch()).data ?? []);
     }
 
     return (
@@ -62,9 +62,9 @@ export default function CreateRecruitmentCycle({
                         <FormItem className="flex flex-col">
                             <FormLabel>Start Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput 
-                                    afterDate={new Date()} 
-                                    onChange={field.onChange} 
+                                <DateTimeInput
+                                    afterDate={new Date()}
+                                    onChange={field.onChange}
                                     value={field.value}
                                 ></DateTimeInput>
                             </FormControl>
@@ -83,9 +83,9 @@ export default function CreateRecruitmentCycle({
                         <FormItem className="flex flex-col">
                             <FormLabel>End Time</FormLabel>
                             <FormControl>
-                                <DateTimeInput 
-                                    afterDate={startTimeWatch ?? new Date()} 
-                                    onChange={field.onChange} 
+                                <DateTimeInput
+                                    afterDate={startTimeWatch ?? new Date()}
+                                    onChange={field.onChange}
                                     value={field.value}
                                 ></DateTimeInput>
                             </FormControl>

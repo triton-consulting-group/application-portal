@@ -1,6 +1,6 @@
 import { recruitmentCyclePhases } from "~/server/db/schema";
 import { adminProcedure, createTRPCRouter, memberProcedure } from "../trpc";
-import { SQL, eq, inArray, sql } from "drizzle-orm";
+import { type SQL, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 import { TRPCError } from "@trpc/server";
@@ -12,7 +12,7 @@ export const recruitmentCyclePhaseRouter = createTRPCRouter({
             return ctx.db
                 .select()
                 .from(recruitmentCyclePhases)
-                .where(eq(recruitmentCyclePhases.cycleId, input))
+                .where(eq(recruitmentCyclePhases.cycleId, input));
         }),
     create: adminProcedure
         .input(createInsertSchema(recruitmentCyclePhases))
@@ -23,7 +23,7 @@ export const recruitmentCyclePhaseRouter = createTRPCRouter({
                     .from(recruitmentCyclePhases)
                     .where(eq(recruitmentCyclePhases.cycleId, input.cycleId))
                 );
-                input.order = (biggestOrder[0]?.maxOrder ?? 0) + 1
+                input.order = (biggestOrder[0]?.maxOrder ?? 0) + 1;
             }
 
             return ctx.db.insert(recruitmentCyclePhases).values(input);
@@ -63,7 +63,7 @@ export const recruitmentCyclePhaseRouter = createTRPCRouter({
             const sqlChunks: SQL[] = [
                 sql`(CASE`,
                 ...input.map((id, idx) => {
-                    return sql`WHEN ${recruitmentCyclePhases.id} = ${id} THEN ${idx}`
+                    return sql`WHEN ${recruitmentCyclePhases.id} = ${id} THEN ${idx}`;
                 }),
                 sql`END)`
             ];
@@ -71,6 +71,6 @@ export const recruitmentCyclePhaseRouter = createTRPCRouter({
             return ctx.db
                 .update(recruitmentCyclePhases)
                 .set({ order: sql.join(sqlChunks, sql.raw(" ")) })
-                .where(inArray(recruitmentCyclePhases.id, input))
+                .where(inArray(recruitmentCyclePhases.id, input));
         }),
 });

@@ -3,7 +3,7 @@ import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import { ApplicationForm } from "./application-form";
-import { Application } from "../types";
+import { type Application } from "../types";
 
 export default async function Apply() {
     const session = await getServerAuthSession();
@@ -29,7 +29,7 @@ export default async function Apply() {
     const [applicationQuestions, applicationResponses] = await Promise.all([
         api.applicationQuestion.getByCycle.query(latestCycle.id),
         api.applicationResponse.getUserResponsesByCycleId.query(latestCycle.id)
-    ])
+    ]);
 
     return (
         <div className="px-12 py-16">
@@ -39,6 +39,6 @@ export default async function Apply() {
                 application={application as Application}
             ></ApplicationForm>
         </div>
-    )
+    );
 }
 

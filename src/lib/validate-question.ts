@@ -1,5 +1,5 @@
-import { ZodSchema, z } from "zod";
-import { ApplicationQuestion } from "~/app/types";
+import { type ZodSchema, z } from "zod";
+import { type ApplicationQuestion } from "~/app/types";
 import { FieldType } from "~/server/db/types";
 
 export const getValidator = (question: ApplicationQuestion): ZodSchema => {
@@ -7,15 +7,15 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
     switch (question.type) {
         case FieldType.STRING:
             schema = z.string()
-                .min(question.minLength as number)
-                .max(question.maxLength as number)
+                .min(question.minLength!)
+                .max(question.maxLength!);
             break;
         case FieldType.BOOLEAN:
             schema = z.string()
                 .refine(
                     val => val === "true" || val === "false",
                     { message: "Invalid value for boolean field" }
-                )
+                );
             break;
         case FieldType.CHECKBOX:
             schema = z.string()
@@ -24,9 +24,9 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
                     { message: "Question is required" }
                 )
                 .refine(
-                    val => val.split(",,,").every(v => (question.options as string[]).includes(v)),
+                    val => val.split(",,,").every(v => (question.options!).includes(v)),
                     { message: "Invalid value for checkbox field" }
-                )
+                );
             break;
         case FieldType.MULTIPLE_CHOICE:
         case FieldType.DROPDOWN:
@@ -37,14 +37,14 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
                 )
                 .refine(
                     val =>
-                        (question.options as string[]).includes(val),
+                        (question.options!).includes(val),
                     { message: `Invalid value for ${question.type} field` }
-                )
+                );
             break;
     }
 
     if (!question.required) schema.optional();
 
     return schema;
-}
+};
 

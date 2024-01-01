@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { SQL, eq, inArray, sql } from "drizzle-orm";
+import { type SQL, eq, inArray, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import {
@@ -38,7 +38,7 @@ export const applicationQuestionRouter = createTRPCRouter({
                     .from(applicationQuestions)
                     .where(eq(applicationQuestions.cycleId, input.cycleId))
                 );
-                input.order = (biggestOrder[0]?.maxOrder ?? 0) + 1
+                input.order = (biggestOrder[0]?.maxOrder ?? 0) + 1;
             }
 
             const question = await ctx.db
@@ -81,7 +81,7 @@ export const applicationQuestionRouter = createTRPCRouter({
             const sqlChunks: SQL[] = [
                 sql`(CASE`,
                 ...input.map((id, idx) => {
-                    return sql`WHEN ${applicationQuestions.id} = ${id} THEN ${idx}`
+                    return sql`WHEN ${applicationQuestions.id} = ${id} THEN ${idx}`;
                 }),
                 sql`END)`
             ];
@@ -89,6 +89,6 @@ export const applicationQuestionRouter = createTRPCRouter({
             return ctx.db
                 .update(applicationQuestions)
                 .set({ order: sql.join(sqlChunks, sql.raw(" ")) })
-                .where(inArray(applicationQuestions.id, input))
+                .where(inArray(applicationQuestions.id, input));
         })
 });
