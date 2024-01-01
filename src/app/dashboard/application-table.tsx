@@ -49,7 +49,11 @@ export default function ApplicationTable({
                         <TableCell>{app.email}</TableCell>
                         <TableCell>{app.phase?.displayName ?? ""}</TableCell>
                         {app.responses.map(res => (
-                            <TableCell key={res.id}>{res.value}</TableCell>
+                            <TableCell key={res.id}>
+                                <div className="line-clamp-3 text-ellipsis overflow-hidden">
+                                    {res.value}
+                                </div>
+                            </TableCell>
                         ))}
                         <TableCell>
                             <DropdownMenu modal={false}>
