@@ -26,8 +26,10 @@ export default async function Apply() {
         application = await api.application.getUserApplicationByCycleId.query(latestCycle.id);
     }
 
-    const applicationQuestions = await api.applicationQuestion.getByCycle.query(latestCycle.id);
-    const applicationResponses = await api.applicationResponse.getUserResponsesByCycleId.query(latestCycle.id);
+    const [applicationQuestions, applicationResponses] = await Promise.all([
+        api.applicationQuestion.getByCycle.query(latestCycle.id),
+        api.applicationResponse.getUserResponsesByCycleId.query(latestCycle.id)
+    ])
 
     return (
         <div className="px-12 py-16">

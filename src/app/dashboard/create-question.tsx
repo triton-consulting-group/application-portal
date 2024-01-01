@@ -301,7 +301,7 @@ export default function CreateQuestion({
                         </form>
                     </Form>
                 </ScrollArea>
-                <div className="text-sm pl-2">
+                <div className="text-sm pl-2 mb-2">
                     <h1 className="text-lg">Preview</h1>
                     {formValues.type && (
                         <Form {...dummyForm}>
