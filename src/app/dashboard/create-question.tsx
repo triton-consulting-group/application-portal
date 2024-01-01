@@ -22,6 +22,7 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Badge } from "~/components/ui/badge";
 import { X } from "lucide-react";
 import { ApplicationQuestion } from "~/components/ui/application-question";
+import { ApplicationQuestion as ApplicationQuestionType } from "../types"
 import { ScrollArea } from "~/components/ui/scroll-area";
 
 const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
@@ -307,7 +308,7 @@ export default function CreateQuestion({
                         <Form {...dummyForm}>
                             <form>
                                 <ApplicationQuestion
-                                    question={{ id: "test", ...formValues }}
+                                    question={{ id: "test",  ...formValues } as ApplicationQuestionType}
                                     control={dummyForm.control}
                                 ></ApplicationQuestion>
                             </form>
