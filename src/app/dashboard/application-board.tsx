@@ -116,10 +116,9 @@ function PhaseCard({
                         ) : (
                             <>
                                 {applications.map(application => (
-                                    <div>
+                                    <div key={application.id}>
                                         <SortableApplication
                                             application={application}
-                                            key={application.id}
                                         />
                                     </div>
                                 ))}
