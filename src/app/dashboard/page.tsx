@@ -30,17 +30,21 @@ export default async function Dashboard() {
             <Tabs defaultValue="applications" className="dark h-full">
                 <TabsList>
                     <TabsTrigger value="applications">Applications</TabsTrigger>
-                    <TabsTrigger value="manage">Management</TabsTrigger>
+                    {session.user.role === Role.ADMIN &&
+                        <TabsTrigger value="manage">Management</TabsTrigger>
+                    }
                 </TabsList>
                 <TabsContent value="applications" className="flex flex-col">
                     <ViewApplications></ViewApplications>
                 </TabsContent>
-                <TabsContent value="manage">
-                    <div className="flex gap-x-8">
-                        <QuestionCard></QuestionCard>
-                        <PhaseCard></PhaseCard>
-                    </div>
-                </TabsContent>
+                {session.user.role === Role.ADMIN &&
+                    <TabsContent value="manage">
+                        <div className="flex gap-x-8">
+                            <QuestionCard></QuestionCard>
+                            <PhaseCard></PhaseCard>
+                        </div>
+                    </TabsContent>
+                }
             </Tabs>
         </main>
     );
