@@ -7,6 +7,9 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/theme-provider";
 import JotaiProvider from "./jotai-provider";
 
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
 const inter = Inter({
     subsets: ["latin"],
     variable: "--font-sans",
@@ -32,9 +35,13 @@ export default function RootLayout({
                         enableSystem
                         disableTransitionOnChange
                     >
-                        <TRPCReactProvider headers={headers()}>{children}</TRPCReactProvider>
+                        <TRPCReactProvider headers={headers()}>
+                            {children}
+                        </TRPCReactProvider>
                     </ThemeProvider>
                 </JotaiProvider>
+                <Analytics />
+                <SpeedInsights />
             </body>
         </html>
     );
