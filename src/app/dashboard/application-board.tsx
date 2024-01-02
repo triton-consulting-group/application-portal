@@ -7,12 +7,14 @@ import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Copy, Eye, GripVertical, Mails } from "lucide-react";
+import { Check, Copy, Eye, GripVertical, Mails, StickyNote } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import FlickerButton from "~/components/ui/flicker-button";
 import ApplicationDisplayDialog from "./application-display-dialog";
+import ViewNotes from "./view-notes";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 function SortableApplication({
     application,
@@ -51,18 +53,44 @@ function SortableApplication({
                 <h3>{application.email}</h3>
             </div>
             <div className="flex">
-                <ApplicationDisplayDialog
-                    application={application}
-                    questions={questions}
-                    asChild
-                >
-                    <Button variant="ghost">
-                        <Eye/>
-                    </Button>
-                </ApplicationDisplayDialog>
+                <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ApplicationDisplayDialog
+                                application={application}
+                                questions={questions}
+                                asChild
+                            >
+                                <Button variant="ghost" className="p-2">
+                                    <Eye />
+                                </Button>
+                            </ApplicationDisplayDialog>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>View application</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                    <Tooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                            <ViewNotes
+                                applicationId={application.id}
+                                asChild
+                            >
+                                <Button variant="ghost" className="p-2">
+                                    <StickyNote />
+                                </Button>
+                            </ViewNotes>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>View notes</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <Button
                     variant="ghost"
-                    className="-mr-8"
+                    className="-mr-8 p-2"
                     {...attributes}
                     {...listeners}
                 >
@@ -96,20 +124,36 @@ function PhaseCard({
                 <CardTitle className="flex justify-between items-center">
                     {phase ? phase.displayName : "Uncategorized"}
                     <div className="flex">
-                        <FlickerButton
-                            onClick={copyNames}
-                            defaultContent={<Copy />}
-                            flickerContent={<Check />}
-                            tooltipContent={<p>Copy applicant names from this phase</p>}
-                            duration={1500}
-                        />
-                        <FlickerButton
-                            onClick={copyEmails}
-                            defaultContent={<Mails />}
-                            flickerContent={<Check />}
-                            tooltipContent={<p>Copy applicant emails from this phase</p>}
-                            duration={1500}
-                        />
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <FlickerButton
+                                        onClick={copyNames}
+                                        defaultContent={<Copy />}
+                                        flickerContent={<Check />}
+                                        duration={1500}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy applicant names from this phase</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <FlickerButton
+                                        onClick={copyEmails}
+                                        defaultContent={<Mails />}
+                                        flickerContent={<Check />}
+                                        duration={1500}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copy applicant emails from this phase</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </CardTitle>
                 <CardDescription>

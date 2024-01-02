@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { ForwardedRef, forwardRef, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import type { ApplicationQuestion as ApplicationQuestionType, ApplicationWithResponses } from "../types";
 import { ApplicationQuestion } from "~/components/ui/application-question";
@@ -11,18 +11,19 @@ import { getValidator } from "~/lib/validate-question";
 import { Button } from "react-day-picker";
 import { Form } from "~/components/ui/form";
 
-export default function ApplicationDisplayDialog({
+const ApplicationDisplayDialog = forwardRef(function ApplicationDisplayDialog({
     application,
     questions,
     asChild,
     children,
+    ...props
 }: {
     application: ApplicationWithResponses,
     questions: ApplicationQuestionType[],
     asChild?: boolean,
     children?: ReactNode,
-}) {
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}, ref: ForwardedRef<any>) {
     const formSchema = z.object(Object.fromEntries(questions.map(q => [q.id, getValidator(q)])));
     const defaultValues = questions.reduce((accumulator, question) => {
         return { [question.id]: application.responses.find(r => r.questionId === question.id)?.value ?? "", ...accumulator };
@@ -35,7 +36,9 @@ export default function ApplicationDisplayDialog({
     return (
         <Dialog>
             <DialogTrigger asChild={asChild}>
-                {asChild ? children : <Button>View Application</Button>}
+                <div ref={ref} {...props}>
+                    {asChild ? children : <Button>View Application</Button>}
+                </div>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -58,4 +61,7 @@ export default function ApplicationDisplayDialog({
         </Dialog>
     );
 }
+);
+
+export default ApplicationDisplayDialog;
 

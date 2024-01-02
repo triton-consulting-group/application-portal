@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode, useEffect, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useState, forwardRef, ForwardedRef } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
@@ -8,15 +8,17 @@ import { ChevronsUpDown, Pencil, Trash2, X } from "lucide-react";
 import CreateNote from "./create-note";
 import { getSession } from "next-auth/react";
 
-export default function ViewNotes({
+const ViewNotes = forwardRef(function ViewNotes({
     applicationId,
     children,
-    asChild
+    asChild,
+    ...props
 }: {
-    applicationId: string
+    applicationId: string,
     children?: ReactNode,
-    asChild: boolean
-}) {
+    asChild?: boolean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}, ref: ForwardedRef<any>) {
     const [notes, setNotes] = useState<(ApplicationNote & { authorName: string | null })[]>([]);
     const [editing, setEditing] = useState<boolean>(false);
     const [userId, setUserId] = useState<string>("");
@@ -47,11 +49,13 @@ export default function ViewNotes({
     return (
         <Dialog>
             <DialogTrigger asChild>
-                {asChild ? children : (
-                    <Button>
-                        Notes
-                    </Button>
-                )}
+                <div ref={ref} {...props}>
+                    {asChild ? children : (
+                        <Button>
+                            Notes
+                        </Button>
+                    )}
+                </div>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -125,4 +129,7 @@ export default function ViewNotes({
             </DialogContent>
         </Dialog>
     );
-}
+});
+
+export default ViewNotes;
+

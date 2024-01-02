@@ -244,20 +244,36 @@ export default function ViewApplications() {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <FlickerButton
-                                    onClick={copyNames}
-                                    defaultContent={<Copy />}
-                                    flickerContent={<Check />}
-                                    duration={1500}
-                                    tooltipContent={<p>Copy displayed applicant names</p>}
-                                />
-                                <FlickerButton
-                                    onClick={copyEmails}
-                                    defaultContent={<Mails />}
-                                    flickerContent={<Check />}
-                                    duration={1500}
-                                    tooltipContent={<p>Copy displayed applicant emails</p>}
-                                />
+                                <TooltipProvider delayDuration={100}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <FlickerButton
+                                                onClick={copyNames}
+                                                defaultContent={<Copy />}
+                                                flickerContent={<Check />}
+                                                duration={1500}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Copy displayed applicant names</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider delayDuration={100}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <FlickerButton
+                                                onClick={copyEmails}
+                                                defaultContent={<Mails />}
+                                                flickerContent={<Check />}
+                                                duration={1500}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Copy displayed applicant emails</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
                         </div>
                     </div>
