@@ -4,13 +4,14 @@ jobs:
   lint: 
     runs-on: ubuntu-latest
     steps:
-      name: Lint
+      - name: Checkout
       uses: actions/checkout@v4
+      - name: Install Packages
+      run: npm ci 
+      - name: Lint
       env: 
         DATABASE_URL: ${{ secrets.DATABASE_URL  }}
         NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
         GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
         GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      run: |
-              npm ci 
-              npm run lint
+      run: npm run lint
