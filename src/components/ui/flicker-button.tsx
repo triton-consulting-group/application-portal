@@ -1,4 +1,4 @@
-import { type ReactNode, useState, forwardRef, ForwardedRef } from "react";
+import { type ReactNode, useState, forwardRef, type ForwardedRef } from "react";
 import { Button } from "./button";
 
 const FlickerButton = forwardRef(function FlickerButton({
