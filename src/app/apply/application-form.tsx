@@ -77,21 +77,23 @@ export function ApplicationForm({
         }
 
         clearTimeout(debounceTimer.current);
-        debounceTimer.current = setTimeout(async () => {
-            for (const key in updateQueue.current) {
-                const update = updateQueue.current[key]!;
-                const question = questions.find(q => q.id === key);
-                if (!question) throw new Error("Question not found");
-                if (question.type === FieldType.FILE_UPLOAD) {
-                    // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
-                    delete updateQueue.current[key];
-                    const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((update.value as File).name);
-                    await fetch(presignedUrl, { method: "PUT", body: update.value });
-                    update.value = fileName;
+        debounceTimer.current = setTimeout(() => {
+            void (async () => {
+                for (const key in updateQueue.current) {
+                    const update = updateQueue.current[key]!;
+                    const question = questions.find(q => q.id === key);
+                    if (!question) throw new Error("Question not found");
+                    if (question.type === FieldType.FILE_UPLOAD) {
+                        // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
+                        delete updateQueue.current[key];
+                        const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((update.value as File).name);
+                        await fetch(presignedUrl, { method: "PUT", body: update.value });
+                        update.value = fileName;
+                    }
+                    createOrUpdateResponseMutation.mutate(update);
                 }
-                createOrUpdateResponseMutation.mutate(update);
-            }
-            updateQueue.current = {};
+                updateQueue.current = {};
+            })();
         }, UPDATE_INTERVAL);
         prevSavedForm.current = formWatch;
     }, [formWatch]);

@@ -7,13 +7,13 @@ import { api } from "~/trpc/react";
 
 export default function FileViewerDialog({ src }: { src: File | string }) {
     const [fileValue, setFileValue] = useState<string | null>(null);
-    const [fileType, setFileType] = useState<"pdf" | "image" | null>(null)
+    const [fileType, setFileType] = useState<"pdf" | "image" | null>(null);
     const getFileValueQuery = api.applicationResponse.getS3DownloadUrl.useQuery(src as string, { enabled: false });
 
     useEffect(() => {
         const getUrl = async () => {
             if (typeof src === "string") {
-                setFileValue((await getFileValueQuery.refetch()).data!)
+                setFileValue((await getFileValueQuery.refetch()).data!);
                 setFileType(src.includes(".pdf") ? "pdf" : "image");
             } else {
                 // it is a raw file
@@ -21,7 +21,7 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
                 setFileType(src.type === "application/pdf" ? "pdf" : "image");
             }
         };
-        getUrl();
+        void getUrl();
     }, [src]);
 
     return (
@@ -52,5 +52,5 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
                 </Dialog>
             )}
         </>
-    )
+    );
 }

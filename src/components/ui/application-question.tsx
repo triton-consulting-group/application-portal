@@ -42,7 +42,7 @@ function FileUploadQuestionContent({
                 <FileViewerDialog src={field.value} />
             </div>
         </div>
-    )
+    );
 }
 
 function QuestionContent({
@@ -162,7 +162,7 @@ function QuestionContent({
     } else if (question.type === FieldType.FILE_UPLOAD) {
         return (
             <FileUploadQuestionContent question={question} field={field} disabled={disabled} />
-        )
+        );
     }
 }
 
