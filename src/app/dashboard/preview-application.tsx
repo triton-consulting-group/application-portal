@@ -27,7 +27,7 @@ export function PreviewApplication({
             <DialogTrigger asChild>
                 <Button>Preview Application</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[80%] overflow-y-scroll">
                 <DialogHeader>
                     <DialogTitle>Application Preview</DialogTitle>
                 </DialogHeader>
