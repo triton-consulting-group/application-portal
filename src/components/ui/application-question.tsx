@@ -8,6 +8,42 @@ import { Input } from "./input";
 import { Textarea } from "./textarea";
 import { Asterisk } from "lucide-react";
 import { type ApplicationQuestion } from "~/app/types";
+import FileViewerDialog from "./file-viewer-dialog";
+
+function FileUploadQuestionContent({
+    question,
+    field,
+    disabled
+}: {
+    question: ApplicationQuestion,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    field: ControllerRenderProps<Record<string, string>, string>,
+    disabled?: boolean,
+}) {
+    return (
+        <div className="flex flex-col gap-y-2">
+            {typeof field.value === "string" && (
+                <FormDescription>
+                    You've already uploaded a file. You can view it again by clicking the eye icon or
+                    upload a new file with the input below.
+                </FormDescription>
+            )}
+            <div className="flex gap-x-2">
+                <Input
+                    type="file"
+                    accept="image/png, image/jpeg, application/pdf"
+                    placeholder={question.placeholder ?? ""}
+                    disabled={disabled}
+                    className="w-fit"
+                    onChange={(e) => {
+                        field.onChange(e.target?.files?.[0]);
+                    }}
+                />
+                <FileViewerDialog src={field.value} />
+            </div>
+        </div>
+    )
+}
 
 function QuestionContent({
     question,
@@ -23,8 +59,9 @@ function QuestionContent({
         if ((question.maxLength ?? 0) < 100) {
             return (
                 <Input
-                    placeholder={question.placeholder ?? ""} {...field}
+                    placeholder={question.placeholder ?? ""}
                     disabled={disabled}
+                    {...field}
                 />
             );
         } else {
@@ -122,6 +159,10 @@ function QuestionContent({
                 </FormItem>
             </RadioGroup>
         );
+    } else if (question.type === FieldType.FILE_UPLOAD) {
+        return (
+            <FileUploadQuestionContent question={question} field={field} disabled={disabled} />
+        )
     }
 }
 

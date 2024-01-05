@@ -140,7 +140,14 @@ export const applicationQuestions = mysqlTable(
         displayName: varchar("displayName", { length: 255 }).notNull(),
         description: varchar("description", { length: 255 }),
         type: mysqlEnum("type",
-            [FieldType.STRING, FieldType.BOOLEAN, FieldType.CHECKBOX, FieldType.MULTIPLE_CHOICE, FieldType.DROPDOWN]
+            [
+                FieldType.STRING,
+                FieldType.BOOLEAN,
+                FieldType.CHECKBOX,
+                FieldType.MULTIPLE_CHOICE,
+                FieldType.DROPDOWN,
+                FieldType.FILE_UPLOAD
+            ]
         )
             .notNull(),
         required: boolean("required").notNull(),

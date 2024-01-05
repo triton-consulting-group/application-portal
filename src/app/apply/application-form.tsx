@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
+import { FieldType } from "~/server/db/types";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -35,9 +36,20 @@ export function ApplicationForm({
         await submitApplicationMutation.mutateAsync(application.id);
     };
 
-    const formSchema = z.object(Object.fromEntries(questions.map(q => [q.id, getValidator(q)])));
+    const formSchema = z.object(Object.fromEntries(questions.map(q => {
+        const validator = getValidator(q);
+        if (q.type === FieldType.FILE_UPLOAD && responses.find(r => r.questionId === q.id)?.value) {
+            return [q.id, validator.nullish()];
+        };
+
+        return [q.id, validator];
+    })));
     const defaultValues = questions.reduce((accumulator, question) => {
-        return { [question.id]: responses.find(r => r.questionId === question.id)?.value ?? "", ...accumulator };
+        return {
+            [question.id]: responses.find(r => r.questionId === question.id)?.value ??
+                (question.type === FieldType.FILE_UPLOAD ? null : ""),
+            ...accumulator
+        };
     }, {});
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -47,8 +59,9 @@ export function ApplicationForm({
     const formWatch: Record<string, string> = form.watch();
     const prevSavedForm = useRef(defaultValues);
     const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
-    const updateQueue = useRef<Record<string, ApplicationResponseInsert>>({});
+    const updateQueue = useRef<Record<string, { value: string | FileList[number] } & ApplicationResponseInsert>>({});
     const createOrUpdateResponseMutation = api.applicationResponse.createOrUpdate.useMutation();
+    const getPresignedUploadMutation = api.applicationResponse.getS3UploadUrl.useMutation();
 
     useEffect(() => {
         for (const questionId of Object.keys(formWatch)) {
@@ -64,9 +77,19 @@ export function ApplicationForm({
         }
 
         clearTimeout(debounceTimer.current);
-        debounceTimer.current = setTimeout(() => {
+        debounceTimer.current = setTimeout(async () => {
             for (const key in updateQueue.current) {
-                createOrUpdateResponseMutation.mutate(updateQueue.current[key]!);
+                const update = updateQueue.current[key]!;
+                const question = questions.find(q => q.id === key);
+                if (!question) throw new Error("Question not found");
+                if (question.type === FieldType.FILE_UPLOAD) {
+                    // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
+                    delete updateQueue.current[key];
+                    const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((update.value as File).name);
+                    await fetch(presignedUrl, { method: "PUT", body: update.value });
+                    update.value = fileName;
+                }
+                createOrUpdateResponseMutation.mutate(update);
             }
             updateQueue.current = {};
         }, UPDATE_INTERVAL);

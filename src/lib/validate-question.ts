@@ -10,6 +10,9 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
                 .min(question.minLength!)
                 .max(question.maxLength!);
             break;
+        case FieldType.FILE_UPLOAD:
+            schema = z.string().min(5);
+            break;
         case FieldType.BOOLEAN:
             schema = z.string()
                 .refine(
@@ -43,7 +46,7 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
             break;
     }
 
-    if (!question.required) schema.optional();
+    if (!question.required) schema = schema.optional();
 
     return schema;
 };

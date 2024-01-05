@@ -1,10 +1,15 @@
 import { z } from "zod";
-import { applicantProcedure, createTRPCRouter, memberProcedure } from "../trpc";
+import { applicantProcedure, createTRPCRouter, memberProcedure, publicProcedure } from "../trpc";
 import { applicationQuestions, applicationResponses, applications, recruitmentCycles } from "~/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { TRPCError } from "@trpc/server";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { FieldType } from "~/server/db/types";
 
+const s3Client = new S3Client({ region: "us-west-1" });
+const BUCKET_NAME = "tcg-application-portal-uploads";
 export const applicationResponseRouter = createTRPCRouter({
     getUserResponsesByCycleId: applicantProcedure
         .input(z.string())
@@ -91,17 +96,37 @@ export const applicationResponseRouter = createTRPCRouter({
                     code: "BAD_REQUEST"
                 });
             }
-
-            if (response) {
-                return ctx.db
-                    .update(applicationResponses)
-                    .set(input)
-                    .where(eq(applicationResponses.id, response.id));
-            } else {
-                return ctx.db
-                    .insert(applicationResponses)
-                    .values(input)
-                    .onDuplicateKeyUpdate({ set: { value: input.value } });
+            // if file upload has a previous response, delete it from s3
+            if (response && question.type === FieldType.FILE_UPLOAD && response.value) {
+                await s3Client.send(new DeleteObjectCommand({
+                    Bucket: BUCKET_NAME,
+                    Key: response.value,
+                }));
             }
+
+            return ctx.db
+                .insert(applicationResponses)
+                .values(input)
+                .onDuplicateKeyUpdate({ set: { value: input.value } });
         }),
+    getS3UploadUrl: applicantProcedure
+        .input(z.string())
+        .mutation(async ({ input }) => {
+            const key = +(new Date()) + input;
+            const url = await getSignedUrl(s3Client, new PutObjectCommand({
+                Bucket: BUCKET_NAME,
+                Key: key
+            }), { expiresIn: 3600 });
+            return { key, url };
+        }),
+    getS3DownloadUrl: publicProcedure
+        .input(z.string())
+        .query(async ({ input }) => {
+            // ok theoretically applicants can access eachother's files if they know the file key 
+            // given that the file key is a file name + time stamp, i think it is unlikely this happens
+            return getSignedUrl(s3Client, new GetObjectCommand({
+                Bucket: BUCKET_NAME,
+                Key: input
+            }));
+        })
 });

@@ -10,6 +10,8 @@ import { MoreVertical } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import ViewNotes from "./view-notes";
 import ApplicationDisplayDialog from "./application-display-dialog";
+import { FieldType } from "~/server/db/types";
+import FileViewerDialog from "~/components/ui/file-viewer-dialog";
 
 export default function ApplicationTable({
     displayedApplications
@@ -49,10 +51,11 @@ export default function ApplicationTable({
                         <TableCell>{app.name}</TableCell>
                         <TableCell>{app.email}</TableCell>
                         <TableCell>{app.phase?.displayName ?? ""}</TableCell>
-                        {app.responses.map(res => (
+                        {app.responses.map((res, index) => (
                             <TableCell key={res.id}>
-                                <div className="line-clamp-3 text-ellipsis overflow-hidden">
+                                <div className="flex px-2 items-center line-clamp-3 text-ellipsis overflow-hidden">
                                     {res.value}
+                                    {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value}/>} 
                                 </div>
                             </TableCell>
                         ))}
