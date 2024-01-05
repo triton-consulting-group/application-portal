@@ -13,8 +13,10 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
     useEffect(() => {
         const getUrl = async () => {
             if (typeof src === "string") {
-                setFileValue((await getFileValueQuery.refetch()).data!);
-                setFileType(src.includes(".pdf") ? "pdf" : "image");
+                if (src.length > 0) {
+                    setFileValue((await getFileValueQuery.refetch()).data!);
+                    setFileType(src.includes(".pdf") ? "pdf" : "image");
+                }
             } else {
                 // it is a raw file
                 setFileValue(URL.createObjectURL(src));

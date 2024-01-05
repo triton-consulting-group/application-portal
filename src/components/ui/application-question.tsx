@@ -22,7 +22,7 @@ function FileUploadQuestionContent({
 }) {
     return (
         <div className="flex flex-col gap-y-2">
-            {typeof field.value === "string" && (
+            {typeof field.value === "string" && field.value.length > 0 && (
                 <FormDescription>
                     You've already uploaded a file. You can view it again by clicking the eye icon or
                     upload a new file with the input below.

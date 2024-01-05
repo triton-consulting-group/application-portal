@@ -29,6 +29,7 @@ export function ApplicationForm({
     application: Application,
     cycle: RecruitmentCycle
 }) {
+    const [fileUploadQueue, setFileUploadQueue] = useState<string[]>([]);
     const [submitted, setSubmitted] = useState<boolean>(application.submitted);
     const submitApplicationMutation = api.application.submit.useMutation();
     const submitApplication = async () => {
@@ -44,10 +45,10 @@ export function ApplicationForm({
 
         return [q.id, validator];
     })));
+
     const defaultValues = questions.reduce((accumulator, question) => {
         return {
-            [question.id]: responses.find(r => r.questionId === question.id)?.value ??
-                (question.type === FieldType.FILE_UPLOAD ? null : ""),
+            [question.id]: responses.find(r => r.questionId === question.id)?.value ?? "",
             ...accumulator
         };
     }, {});
@@ -85,10 +86,12 @@ export function ApplicationForm({
                     if (!question) throw new Error("Question not found");
                     if (question.type === FieldType.FILE_UPLOAD) {
                         // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
+                        setFileUploadQueue([...fileUploadQueue, key]);
                         delete updateQueue.current[key];
                         const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((update.value as File).name);
                         await fetch(presignedUrl, { method: "PUT", body: update.value });
                         update.value = fileName;
+                        setFileUploadQueue(fileUploadQueue.filter(k => k !== key));
                     }
                     createOrUpdateResponseMutation.mutate(update);
                 }
@@ -125,7 +128,7 @@ export function ApplicationForm({
                             key={q.id}
                         ></ApplicationQuestion>
                     ))}
-                    {!submitted && <Button type="submit">Submit Application</Button>}
+                    {!submitted && <Button type="submit" disabled={fileUploadQueue.length > 0}>Submit Application</Button>}
                 </form>
             </Form>
         </div>

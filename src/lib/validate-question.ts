@@ -2,7 +2,7 @@ import { type ZodSchema, z } from "zod";
 import { type ApplicationQuestion } from "~/app/types";
 import { FieldType } from "~/server/db/types";
 
-export const getValidator = (question: ApplicationQuestion): ZodSchema => {
+export const getValidator = (question: ApplicationQuestion, server?: boolean): ZodSchema => {
     let schema: ZodSchema;
     switch (question.type) {
         case FieldType.STRING:
@@ -11,7 +11,7 @@ export const getValidator = (question: ApplicationQuestion): ZodSchema => {
                 .max(question.maxLength!);
             break;
         case FieldType.FILE_UPLOAD:
-            schema = z.string().min(5);
+            schema = server ? z.string().min(5) : z.string().or(z.instanceof(File));
             break;
         case FieldType.BOOLEAN:
             schema = z.string()

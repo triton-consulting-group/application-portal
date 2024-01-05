@@ -103,7 +103,7 @@ export const applicationRouter = createTRPCRouter({
             // validate recruitment cycle questions
             for (const question of questions) {
                 const responseVal = (responses.find(r => r.questionId === question.id))?.value;
-                const parsedResult = getValidator(question).safeParse(responseVal);
+                const parsedResult = getValidator(question, true).safeParse(responseVal);
                 if (!parsedResult.success) {
                     throw new TRPCError({
                         message: parsedResult.error.message,
