@@ -1,7 +1,7 @@
 import * as fs from 'fs'
-import { db } from './db';
-import { users } from '~/server/db/schema';
-import { Role } from '~/server/db/types';
+import { db } from '../src/server/db';
+import { users } from '../src/server/db/schema';
+import { Role } from '../src/server/db/types';
 
 export const loadNames = (): [string[], string[]] => [
     fs.readFileSync("./first-names.txt", { encoding: "utf8" }).split("\n"),

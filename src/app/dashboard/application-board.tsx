@@ -119,7 +119,7 @@ function PhaseCard({
     }, [displayedApplications, phase]);
 
     return (
-        <Card className="grow min-w-[28rem] min-h-[28rem] flex flex-col">
+        <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] overflow-scroll flex flex-col">
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     {phase ? phase.displayName : "Uncategorized"}

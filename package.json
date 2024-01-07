@@ -9,7 +9,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "compile-tests": "tsc test/build test/create-fake-data.ts"
+    "compile-tests": "tsc --outDir test/build test/create-fake-data.ts && cp test/first-names.txt test/build/test && cp test/last-names.txt test/build/test"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^0.3.2",

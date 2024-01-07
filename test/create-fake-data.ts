@@ -1,4 +1,4 @@
-import { Role } from "~/server/db/types";
+import { Role } from "../src/server/db/types";
 import { generateUser, insertUsers, loadNames } from "./create-users";
 import { createApplications, fillApplications, submitApplications } from "./create-applications";
 

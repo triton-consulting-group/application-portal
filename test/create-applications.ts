@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { db } from "./db"
-import { applicationQuestions, applicationResponses, applications } from "~/server/db/schema"
-import { FieldType } from "~/server/db/types";
+import { db } from "../src/server/db"
+import { applicationQuestions, applicationResponses, applications } from "../src/server/db/schema"
+import { FieldType } from "../src/server/db/types";
 import * as crypto from "crypto"
 
 export const createApplications = async (userIds: string[], cycleId: string) => {
@@ -28,12 +28,15 @@ export const fillApplications = async (applicationIds: string[], cycleId: string
     return Promise.all(applicationIds.map(async (id) => {
         const responses: { questionId: string, value: string, applicationId: string }[] = [];
         for (const q of questions) {
+            if (!q.required && Math.random() < 0.5) continue;
             const response: typeof responses[number] = { questionId: q.id, applicationId: id, value: "" };
             if (q.type === FieldType.STRING) {
                 q.minLength = q.minLength ?? 0;
                 q.maxLength = q.maxLength ?? q.minLength + 40;
                 const length = Math.floor((Math.random() * (q.maxLength - q.minLength))) + (q.minLength)
-                response.value = crypto.randomBytes(Math.ceil(length / 2)).toString('hex');
+                while (response.value.length < length) {
+                    response.value += crypto.randomBytes(3).toString('hex') + " ";
+                }
             } else if (q.type === FieldType.BOOLEAN) {
                 response.value = ["false", "true"][Math.floor(Math.random() * 2)]!
             } else if (q.type === FieldType.CHECKBOX) {
