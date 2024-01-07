@@ -6,7 +6,7 @@ import { api } from "~/trpc/server";
 import RecruitmentCycleCombobox from "./recruitment-cycle-combobox";
 import QuestionCard from "./question-card";
 import PhaseCard from "./phase-card";
-import ViewApplications from "./view-applicatons";
+import ViewApplications from "./view-applications";
 
 export default async function Dashboard() {
     const session = await getServerAuthSession();
