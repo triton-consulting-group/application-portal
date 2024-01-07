@@ -13,6 +13,7 @@ import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
 import { FieldType } from "~/server/db/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -57,21 +58,42 @@ export function ApplicationForm({
         resolver: zodResolver(formSchema),
         defaultValues: defaultValues
     });
-    const formWatch: Record<string, string> = form.watch();
+    const formWatch: Record<string, string | File> = form.watch();
     const prevSavedForm = useRef(defaultValues);
     const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
-    const updateQueue = useRef<Record<string, { value: string | FileList[number] } & ApplicationResponseInsert>>({});
+    const updateQueue = useRef<Record<string, { value: string | File } & ApplicationResponseInsert>>({});
     const createOrUpdateResponseMutation = api.applicationResponse.createOrUpdate.useMutation();
     const getPresignedUploadMutation = api.applicationResponse.getS3UploadUrl.useMutation();
 
     useEffect(() => {
+        const uploadFile = async (questionId: string, applicationId: string, file: File, responseId: string | undefined) => {
+            setFileUploadQueue([...fileUploadQueue, questionId]);
+            // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
+            const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((file as File).name);
+            await fetch(presignedUrl, { method: "PUT", body: file });
+            setFileUploadQueue(fileUploadQueue.filter(k => k !== questionId));
+            createOrUpdateResponseMutation.mutate({
+                questionId: questionId,
+                applicationId: applicationId,
+                value: fileName,
+                ... (responseId ? { id: responseId } : {})
+            });
+        };
+
         for (const questionId of Object.keys(formWatch)) {
             if (formWatch[questionId] !== prevSavedForm.current[questionId as keyof typeof defaultValues]) {
                 const response = responses.find(r => r.questionId === questionId);
+                const question = questions.find(q => q.id === questionId);
+                if (!question) throw new Error("Question not found");
+                if (question.type === FieldType.FILE_UPLOAD) {
+                    uploadFile(questionId, application.id, formWatch[questionId] as File, response?.id);
+                    continue;
+                };
+
                 updateQueue.current[questionId] = {
                     questionId: questionId,
                     applicationId: application.id,
-                    value: formWatch[questionId]!,
+                    value: formWatch[questionId] as string,
                     ... (response ? { id: response.id } : {})
                 };
             }
@@ -82,20 +104,11 @@ export function ApplicationForm({
             void (async () => {
                 for (const key in updateQueue.current) {
                     const update = updateQueue.current[key]!;
+                    delete updateQueue.current[key];
                     const question = questions.find(q => q.id === key);
                     if (!question) throw new Error("Question not found");
-                    if (question.type === FieldType.FILE_UPLOAD) {
-                        // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
-                        setFileUploadQueue([...fileUploadQueue, key]);
-                        delete updateQueue.current[key];
-                        const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((update.value as File).name);
-                        await fetch(presignedUrl, { method: "PUT", body: update.value });
-                        update.value = fileName;
-                        setFileUploadQueue(fileUploadQueue.filter(k => k !== key));
-                    }
                     createOrUpdateResponseMutation.mutate(update);
                 }
-                updateQueue.current = {};
             })();
         }, UPDATE_INTERVAL);
         prevSavedForm.current = formWatch;
@@ -128,7 +141,18 @@ export function ApplicationForm({
                             key={q.id}
                         ></ApplicationQuestion>
                     ))}
-                    {!submitted && <Button type="submit" disabled={fileUploadQueue.length > 0}>Submit Application</Button>}
+                    {!submitted &&
+                        <div className="flex flex-col gap-y-2">
+                            {fileUploadQueue.length > 0 &&
+                                <p>Wait for files to finish uploading...</p>
+                            }
+                            <Button
+                                type="submit"
+                                disabled={fileUploadQueue.length > 0}
+                                className="w-fit"
+                            >Submit Application</Button>
+                        </div>
+                    }
                 </form>
             </Form>
         </div>

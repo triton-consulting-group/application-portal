@@ -83,6 +83,12 @@ export const applicationResponseRouter = createTRPCRouter({
                 });
             }
 
+            if (application.userId !== ctx.session.user.id) {
+                throw new TRPCError({
+                    code: "FORBIDDEN"
+                });
+            }
+
             if (application.submitted) {
                 throw new TRPCError({
                     message: "Can't update response when the assosciated application is submitted",
