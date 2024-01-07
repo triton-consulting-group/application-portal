@@ -44,7 +44,7 @@ export default function ViewApplications() {
         const fetchData = async () => {
             setLoading(true);
             const [
-                { data: questions = [] },
+                { data: fetchedQuestions = [] },
                 { data: responses = [] },
                 { data: phases = [] },
                 { data: applications = [] },
@@ -54,8 +54,7 @@ export default function ViewApplications() {
                 getPhasesByCycleQuery.refetch(),
                 getApplicationsByCycleQuery.refetch()
             ]);
-
-            setQuestions(questions);
+            setQuestions(fetchedQuestions);
             setPhases(phases);
 
             const applicationsWithResponses = applications
@@ -65,13 +64,13 @@ export default function ViewApplications() {
                     email: app?.user?.email ?? "",
                     name: app?.user?.name ?? "",
                     phase: phases.find(p => p.id === app.application.phaseId),
-                    responses: questions.map(q => 
-                        responses.find(r => r.applicationId === app.application.id && r.questionId === q.id) ?? 
-                        { 
+                    responses: fetchedQuestions.map(q =>
+                        responses.find(r => r.applicationId === app.application.id && r.questionId === q.id) ??
+                        {
                             value: "",
                             questionId: q.id,
                             applicationId: app.application.id,
-                            id: app.application.id + q.id 
+                            id: app.application.id + q.id
                         }
                     )
                 }));
@@ -79,8 +78,7 @@ export default function ViewApplications() {
             setDisplayedApplications(applicationsWithResponses);
             setLoading(false);
         };
-
-        void fetchData();
+        if (cycleId) void fetchData();
     }, [cycleId]);
 
     const [filters, setFilters] = useState<Filter[]>([]);
