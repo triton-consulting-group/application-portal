@@ -40,7 +40,10 @@ export default function ApplicationTable({
                     <TableHead className="whitespace-nowrap">Applicant Email</TableHead>
                     <TableHead className="whitespace-nowrap">Phase</TableHead>
                     {questions.map(q => (
-                        <TableHead key={q.id}>{q.displayName}</TableHead>
+                        <TableHead
+                            className={q.type === FieldType.STRING ? "min-w-[240px]" : ""}
+                            key={q.id}
+                        >{q.displayName}</TableHead>
                     ))}
                     <TableHead></TableHead>
                 </TableRow>
