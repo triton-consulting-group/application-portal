@@ -198,7 +198,7 @@ export default function ApplicationBoard({
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
 
-    const handleDragEnd = ({ active }: { active: DragEndEvent['active'], over: DragEndEvent['over'] }) => {
+    const handleDragEnd = ({ active }: { active: DragEndEvent['active'] }) => {
         setActive(null);
         // handle drag over already set the phase id, so now just commit the change 
         const application = applications.find(a => a.id === active.id);
@@ -216,6 +216,7 @@ export default function ApplicationBoard({
 
     const handleDragOver = ({ active, over }: { active: DragOverEvent['active'], over: DragOverEvent['over'] }) => {
         if (!over) return;
+        console.log("hi")
         const modifiedApplication = applications.find(a => a.id === active.id);
         if (!modifiedApplication) throw new Error("Dragged application not found");
         if (over.id === active.id) return;
@@ -225,7 +226,6 @@ export default function ApplicationBoard({
         const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
         modifiedApplication.phaseId = phase?.id ?? null;
         modifiedApplication.phase = phases.find(p => p.id === over.id);
-
 
         setApplications([
             modifiedApplication,
