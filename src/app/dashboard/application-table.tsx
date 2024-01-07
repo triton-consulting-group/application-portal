@@ -53,9 +53,11 @@ export default function ApplicationTable({
                         <TableCell>{app.phase?.displayName ?? ""}</TableCell>
                         {app.responses.map((res, index) => (
                             <TableCell key={res.id}>
-                                <div className="flex px-2 items-center line-clamp-3 text-ellipsis overflow-hidden">
-                                    {res.value}
-                                    {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value}/>} 
+                                <div className="flex px-2 items-center">
+                                    <p className="line-clamp-3 text-ellipsis overflow-hidden">
+                                        {res.value}
+                                    </p>
+                                    {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value} />}
                                 </div>
                             </TableCell>
                         ))}
