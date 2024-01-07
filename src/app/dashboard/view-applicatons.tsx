@@ -43,32 +43,40 @@ export default function ViewApplications() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const [{ data: questions = [] }, { data: responses = [] }, { data: phases = [] }] = await Promise.all([
+            const [
+                { data: questions = [] },
+                { data: responses = [] },
+                { data: phases = [] },
+                { data: applications = [] },
+            ] = await Promise.all([
                 getQuestionsByCycleQuery.refetch(),
                 getResponsesByCycleQuery.refetch(),
-                getPhasesByCycleQuery.refetch()
+                getPhasesByCycleQuery.refetch(),
+                getApplicationsByCycleQuery.refetch()
             ]);
 
             setQuestions(questions);
             setPhases(phases);
 
-            const applications = ((await getApplicationsByCycleQuery.refetch()).data ?? [])
+            const applicationsWithResponses = applications
                 .filter(app => app.application.submitted)
                 .map((app): ApplicationWithResponses => ({
                     ...app.application,
                     email: app?.user?.email ?? "",
                     name: app?.user?.name ?? "",
                     phase: phases.find(p => p.id === app.application.phaseId),
-                    responses: responses
-                        .filter(r => r.applicationId === app.application.id)
-                        .sort((a, b) => {
-                            const questionA = questions.find(q => q.id === a.questionId);
-                            const questionB = questions.find(q => q.id === b.questionId);
-                            return (questionA?.order ?? Number.MAX_SAFE_INTEGER) - (questionB?.order ?? Number.MAX_SAFE_INTEGER);
-                        })
+                    responses: questions.map(q => 
+                        responses.find(r => r.applicationId === app.application.id && r.questionId === q.id) ?? 
+                        { 
+                            value: "",
+                            questionId: q.id,
+                            applicationId: app.application.id,
+                            id: app.application.id + q.id 
+                        }
+                    )
                 }));
-            setApplications(applications);
-            setDisplayedApplications(applications);
+            setApplications(applicationsWithResponses);
+            setDisplayedApplications(applicationsWithResponses);
             setLoading(false);
         };
 
