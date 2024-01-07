@@ -13,7 +13,6 @@ import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
 import { FieldType } from "~/server/db/types";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -69,7 +68,7 @@ export function ApplicationForm({
         const uploadFile = async (questionId: string, applicationId: string, file: File, responseId: string | undefined) => {
             setFileUploadQueue([...fileUploadQueue, questionId]);
             // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
-            const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync((file as File).name);
+            const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync(file.name);
             await fetch(presignedUrl, { method: "PUT", body: file });
             setFileUploadQueue(fileUploadQueue.filter(k => k !== questionId));
             createOrUpdateResponseMutation.mutate({
@@ -86,7 +85,7 @@ export function ApplicationForm({
                 const question = questions.find(q => q.id === questionId);
                 if (!question) throw new Error("Question not found");
                 if (question.type === FieldType.FILE_UPLOAD) {
-                    uploadFile(questionId, application.id, formWatch[questionId] as File, response?.id);
+                    void uploadFile(questionId, application.id, formWatch[questionId] as File, response?.id);
                     continue;
                 };
 
@@ -101,7 +100,7 @@ export function ApplicationForm({
 
         clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
-            void (async () => {
+            void (() => {
                 for (const key in updateQueue.current) {
                     const update = updateQueue.current[key]!;
                     delete updateQueue.current[key];
