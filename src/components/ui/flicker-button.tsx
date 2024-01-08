@@ -1,5 +1,5 @@
-import { type ReactNode, useState, forwardRef, MouseEventHandler, MouseEvent } from "react";
-import { Button, ButtonProps } from "./button";
+import { type ReactNode, useState, forwardRef, type MouseEventHandler, type MouseEvent } from "react";
+import { Button, type ButtonProps } from "./button";
 
 export interface FlickerButtonProps extends ButtonProps {
     defaultContent: ReactNode,
