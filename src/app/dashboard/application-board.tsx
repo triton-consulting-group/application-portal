@@ -5,16 +5,17 @@ import type { ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
 import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Copy, Eye, GripVertical, Mails, StickyNote } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import FlickerButton from "~/components/ui/flicker-button";
 import ApplicationDisplayDialog from "./application-display-dialog";
 import ViewNotes from "./view-notes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 function SortableApplication({
     application,
@@ -110,6 +111,12 @@ function PhaseCard({
 }) {
     const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
     const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } });
+    const virtualRef = useRef<HTMLDivElement>(null);
+    const virtualizer = useVirtualizer({
+        count: applications.length,
+        getScrollElement: () => virtualRef.current,
+        estimateSize: () => 64,
+    });
 
     const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
     const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
@@ -119,7 +126,7 @@ function PhaseCard({
     }, [displayedApplications, phase]);
 
     return (
-        <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] overflow-scroll flex flex-col">
+        <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] flex flex-col">
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     {phase ? phase.displayName : "Uncategorized"}
@@ -162,24 +169,43 @@ function PhaseCard({
             </CardHeader>
             <CardContent className="grow">
                 <SortableContext
+                    strategy={verticalListSortingStrategy}
                     items={applications.map(a => a.id)}
                 >
-                    <div ref={setNodeRef} className="flex flex-col h-full divide-y">
-                        {applications.length === 0 ? (
-                            <div>
-                                No applications are in this phase yet.
-                            </div>
-                        ) : (
-                            <>
-                                {applications.map(application => (
-                                    <div key={application.id}>
+                    <div ref={setNodeRef}>
+                        <div ref={virtualRef} className="h-[300px] overflow-auto">
+                            <div
+                                className="divide-y"
+                                style={{
+                                    height: `${virtualizer.getTotalSize()}px`,
+                                    width: "100%",
+                                    position: "relative"
+                                }}
+                            >
+                                {applications.length === 0 &&
+                                    <div>
+                                        No applications are in this phase yet.
+                                    </div>
+                                }
+                                {virtualizer.getVirtualItems().map(virtualRow => (
+                                    <div
+                                        key={virtualRow.index}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '0',
+                                            left: '0',
+                                            width: "100%",
+                                            height: `${virtualRow.size}px`,
+                                            transform: `translateY(${virtualRow.start}px)`
+                                        }}
+                                    >
                                         <SortableApplication
-                                            application={application}
+                                            application={applications[virtualRow.index]!}
                                         />
                                     </div>
                                 ))}
-                            </>
-                        )}
+                            </div>
+                        </div>
                     </div>
                 </SortableContext>
             </CardContent>
