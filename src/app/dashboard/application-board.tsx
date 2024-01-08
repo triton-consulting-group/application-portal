@@ -216,7 +216,6 @@ export default function ApplicationBoard({
 
     const handleDragOver = ({ active, over }: { active: DragOverEvent['active'], over: DragOverEvent['over'] }) => {
         if (!over) return;
-        console.log("hi")
         const modifiedApplication = applications.find(a => a.id === active.id);
         if (!modifiedApplication) throw new Error("Dragged application not found");
         if (over.id === active.id) return;
