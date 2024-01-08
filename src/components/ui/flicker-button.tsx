@@ -1,24 +1,29 @@
-import { type ReactNode, useState, forwardRef, type ForwardedRef } from "react";
-import { Button } from "./button";
+import { type ReactNode, useState, forwardRef, MouseEventHandler, MouseEvent } from "react";
+import { Button, ButtonProps } from "./button";
 
-const FlickerButton = forwardRef(function FlickerButton({
+export interface FlickerButtonProps extends ButtonProps {
+    defaultContent: ReactNode,
+    flickerContent: ReactNode,
+    duration: number
+}
+
+const FlickerButton = forwardRef<HTMLButtonElement, FlickerButtonProps>(function FlickerButton({
     onClick,
     defaultContent,
     flickerContent,
     duration,
     ...props
 }: {
-    onClick: () => void,
+    onClick?: MouseEventHandler<HTMLButtonElement>,
     defaultContent: ReactNode,
     flickerContent: ReactNode,
     duration: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}, ref: ForwardedRef<any>) {
+}, ref) {
     const [alt, setAlt] = useState<boolean>(false);
-    const handleClick = () => {
+    const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
         setAlt(true);
         setTimeout(() => setAlt(false), duration);
-        onClick();
+        if (onClick) onClick(e);
     };
 
     return (
