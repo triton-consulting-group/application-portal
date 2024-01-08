@@ -33,81 +33,83 @@ export default function ApplicationTable({
     };
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="whitespace-nowrap">Applicant Name</TableHead>
-                    <TableHead className="whitespace-nowrap">Applicant Email</TableHead>
-                    <TableHead className="whitespace-nowrap">Phase</TableHead>
-                    {questions.map(q => (
-                        <TableHead
-                            className={q.type === FieldType.STRING ? "min-w-[240px]" : ""}
-                            key={q.id}
-                        >{q.displayName}</TableHead>
-                    ))}
-                    <TableHead></TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {displayedApplications.map(app => (
-                    <TableRow key={app.id}>
-                        <TableCell>{app.name}</TableCell>
-                        <TableCell>{app.email}</TableCell>
-                        <TableCell>{app.phase?.displayName ?? ""}</TableCell>
-                        {app.responses.map((res, index) => (
-                            <TableCell key={res.id}>
-                                <div className="flex px-2 items-center">
-                                    <p className="line-clamp-3 text-ellipsis overflow-hidden">
-                                        {res.value}
-                                    </p>
-                                    {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value} />}
-                                </div>
-                            </TableCell>
+        <div className="w-full h-[600px] overflow-auto">
+            <Table>
+                <TableHeader className="sticky top-0 bg-secondary">
+                    <TableRow>
+                        <TableHead className="whitespace-nowrap">Applicant Name</TableHead>
+                        <TableHead className="whitespace-nowrap">Applicant Email</TableHead>
+                        <TableHead className="whitespace-nowrap">Phase</TableHead>
+                        {questions.map(q => (
+                            <TableHead
+                                className={q.type === FieldType.STRING ? "min-w-[240px]" : ""}
+                                key={q.id}
+                            >{q.displayName}</TableHead>
                         ))}
-                        <TableCell>
-                            <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost"><MoreVertical /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>
-                                            <span>Set Phase</span>
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuPortal>
-                                            <DropdownMenuSubContent className="mr-1">
-                                                {phases.map(p => (
-                                                    <DropdownMenuItem
-                                                        key={p.id}
-                                                        onClick={() => setApplicationPhase(app.id, p.id)}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        <span>{p.displayName}</span>
-                                                    </DropdownMenuItem>
-                                                ))}
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuPortal>
-                                    </DropdownMenuSub>
-                                    <ApplicationDisplayDialog
-                                        application={app}
-                                        questions={questions}
-                                        asChild
-                                    >
-                                        <span className="flex cursor-pointer text-sm py-1.5 px-2">View Application</span>
-                                    </ApplicationDisplayDialog>
-                                    <ViewNotes
-                                        applicationId={app.id}
-                                        asChild
-                                    >
-                                        <span className="flex cursor-pointer text-sm py-1.5 px-2">Notes</span>
-                                    </ViewNotes>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
+                        <TableHead></TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {displayedApplications.map(app => (
+                        <TableRow key={app.id}>
+                            <TableCell>{app.name}</TableCell>
+                            <TableCell>{app.email}</TableCell>
+                            <TableCell>{app.phase?.displayName ?? ""}</TableCell>
+                            {app.responses.map((res, index) => (
+                                <TableCell key={res.id}>
+                                    <div className="flex px-2 items-center">
+                                        <p className="line-clamp-3 text-ellipsis overflow-hidden">
+                                            {res.value}
+                                        </p>
+                                        {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value} />}
+                                    </div>
+                                </TableCell>
+                            ))}
+                            <TableCell>
+                                <DropdownMenu modal={false}>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost"><MoreVertical /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <span>Set Phase</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent className="mr-1">
+                                                    {phases.map(p => (
+                                                        <DropdownMenuItem
+                                                            key={p.id}
+                                                            onClick={() => setApplicationPhase(app.id, p.id)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <span>{p.displayName}</span>
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
+                                        <ApplicationDisplayDialog
+                                            application={app}
+                                            questions={questions}
+                                            asChild
+                                        >
+                                            <span className="flex cursor-pointer text-sm py-1.5 px-2">View Application</span>
+                                        </ApplicationDisplayDialog>
+                                        <ViewNotes
+                                            applicationId={app.id}
+                                            asChild
+                                        >
+                                            <span className="flex cursor-pointer text-sm py-1.5 px-2">Notes</span>
+                                        </ViewNotes>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     );
 }
 
