@@ -65,20 +65,22 @@ export const applicationRouter = createTRPCRouter({
     submit: applicantProcedure
         .input(z.string())
         .mutation(async ({ ctx, input }) => {
-            const [latestCycle] = await ctx.db
-                .select()
-                .from(recruitmentCycles)
-                .where(
-                    sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
-                )
-                .limit(1);
-            const [application] = await ctx.db
-                .select()
-                .from(applications)
-                .where(and(
-                    eq(applications.id, input),
-                    eq(applications.userId, ctx.session.user.id)
-                ));
+            const [[latestCycle], [application]] = await Promise.all([
+                ctx.db
+                    .select()
+                    .from(recruitmentCycles)
+                    .where(
+                        sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
+                    )
+                    .limit(1),
+                ctx.db
+                    .select()
+                    .from(applications)
+                    .where(and(
+                        eq(applications.id, input),
+                        eq(applications.userId, ctx.session.user.id)
+                    ))
+            ])
 
             if (!application) {
                 throw new TRPCError({ code: "NOT_FOUND" });
@@ -91,17 +93,18 @@ export const applicationRouter = createTRPCRouter({
                 });
             }
 
-            const questions = await ctx.db
-                .select()
-                .from(applicationQuestions)
-                .where(eq(applicationQuestions.cycleId, latestCycle.id));
-
-            const responses = await ctx.db
-                .select()
-                .from(applicationResponses)
-                .where(and(
-                    eq(applicationResponses.applicationId, application.id),
-                ));
+            const [questions, responses] = await Promise.all([
+                ctx.db
+                    .select()
+                    .from(applicationQuestions)
+                    .where(eq(applicationQuestions.cycleId, latestCycle.id)),
+                ctx.db
+                    .select()
+                    .from(applicationResponses)
+                    .where(and(
+                        eq(applicationResponses.applicationId, application.id),
+                    ))
+            ]);
 
             // validate recruitment cycle questions
             for (const question of questions) {
@@ -117,7 +120,7 @@ export const applicationRouter = createTRPCRouter({
 
             const res = await ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
             if (ctx.session.user.email) {
-                await client.send(new SendEmailCommand({
+                client.send(new SendEmailCommand({
                     Source: "no-reply@ucsdtcg.org",
                     Destination: {
                         ToAddresses: [ctx.session.user.email]

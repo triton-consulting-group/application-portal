@@ -13,6 +13,7 @@ import { applicationResponses } from "~/server/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
 import { FieldType } from "~/server/db/types";
+import { useRouter } from "next/navigation";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -32,12 +33,14 @@ export function ApplicationForm({
     const [fileUploadQueue, setFileUploadQueue] = useState<string[]>([]);
     const [submitted, setSubmitted] = useState<boolean>(application.submitted);
     const submitApplicationMutation = api.application.submit.useMutation();
+    const router = useRouter();
     const submitApplication = async () => {
         setSubmitted(true);
         while (Object.keys(updateQueue.current).length > 0) {
             await new Promise(resolve => setTimeout(resolve, 250));
         }
         await submitApplicationMutation.mutateAsync(application.id);
+        router.push("/apply/confirmation");
     };
 
     const formSchema = z.object(Object.fromEntries(questions.map(q => {
