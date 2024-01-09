@@ -34,6 +34,9 @@ export function ApplicationForm({
     const submitApplicationMutation = api.application.submit.useMutation();
     const submitApplication = async () => {
         setSubmitted(true);
+        while (Object.keys(updateQueue.current).length > 0) {
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
         await submitApplicationMutation.mutateAsync(application.id);
     };
 
