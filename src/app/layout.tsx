@@ -28,6 +28,11 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`font-sans ${inter.variable}`}>
+                {/*
+                The nextJS compiler automatically removes the .dark class (unused), which is 
+                required for dark mode, so create a fake div to make sure it isn't removed
+                */}
+                <div className="dark hidden"></div>
                 <JotaiProvider>
                     <ThemeProvider
                         attribute="class"
