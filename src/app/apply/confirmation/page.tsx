@@ -21,14 +21,14 @@ export default async function Apply() {
         redirect("/");
     }
 
-    let application = await api.application.getUserApplicationByCycleId.query(latestCycle.id);
+    const application = await api.application.getUserApplicationByCycleId.query(latestCycle.id);
     if (!application || !application.submitted) {
         redirect("/apply");
     }
 
     return (
         <>
-            <Confetti/>
+            <Confetti />
             <div className="flex flex-col h-screen justify-center items-center gap-y-3">
                 <h1 className="text-5xl font-extrabold">Application Submitted!</h1>
                 <p className="text-center">

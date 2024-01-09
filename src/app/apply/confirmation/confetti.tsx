@@ -17,5 +17,5 @@ export default function Confetti() {
             onInit={onInit}
             className="top-0 left-0 h-screen w-screen pointer-events-none fixed"
         />
-    )
+    );
 }

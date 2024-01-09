@@ -80,7 +80,7 @@ export const applicationRouter = createTRPCRouter({
                         eq(applications.id, input),
                         eq(applications.userId, ctx.session.user.id)
                     ))
-            ])
+            ]);
 
             if (!application) {
                 throw new TRPCError({ code: "NOT_FOUND" });
@@ -120,7 +120,7 @@ export const applicationRouter = createTRPCRouter({
 
             const res = await ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
             if (ctx.session.user.email) {
-                client.send(new SendEmailCommand({
+                void client.send(new SendEmailCommand({
                     Source: "no-reply@ucsdtcg.org",
                     Destination: {
                         ToAddresses: [ctx.session.user.email]
