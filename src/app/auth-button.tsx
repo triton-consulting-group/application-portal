@@ -1,22 +1,20 @@
 'use client';
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import { Button } from "~/components/ui/button";
 
 export default function AuthButton(props: { loggedIn: boolean }) {
     if (props.loggedIn) {
         return (
-            <button
-                className="flex flex-row rounded-full bg-white text-black px-4 py-2"
-                onClick={() => signOut()}
-            >
+            <Button onClick={() => signOut()}>
                 Sign Out
-            </button>
+            </Button>
         );
     }
 
     return (
-        <button
-            className="flex flex-row rounded-full bg-white text-black px-4 py-2"
+        <Button
+            className="flex flex-row "
             onClick={() => signIn("google")}
         >
             <Image
@@ -28,6 +26,6 @@ export default function AuthButton(props: { loggedIn: boolean }) {
                 src="https://authjs.dev/img/providers/google.svg"
             />
             Sign in with Google
-        </button>
+        </Button>
     );
 }

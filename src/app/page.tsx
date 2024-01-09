@@ -5,6 +5,7 @@ import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import { Instagram } from "lucide-react";
 import Image from "next/image";
+import { Button } from "~/components/ui/button";
 
 export default async function Home() {
     const session = await getServerAuthSession();
@@ -16,16 +17,15 @@ export default async function Home() {
                 return (
                     <div className="flex flex-col items-center gap-y-2">
                         <h2 className="text-center">
-                            We aren&apos;t currently accepting applications. <br />
+                            We aren't currently accepting applications. <br />
                             Follow us on Instagram to be notified of when our Fall and Winter recruitment begins!
                         </h2>
-                        <Link
-                            className="flex max-w-xs w-fit flex-row gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                            href="https://www.instagram.com/ucsdtcg/"
-                        >
-                            <Instagram />
-                            @ucsdtcg
-                        </Link>
+                        <Button>
+                            <Link href="https://www.instagram.com/ucsdtcg/">
+                                <Instagram />
+                                @ucsdtcg
+                            </Link>
+                        </Button>
                     </div>
                 );
             }
@@ -33,21 +33,19 @@ export default async function Home() {
             const application = await api.application.getUserApplicationByCycleId.query(activeCycle.id);
 
             return (
-                <Link
-                    className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                    href="/apply"
-                >
-                    {application ? "Continue your application" : "Start your application"}
-                </Link>
+                <Button>
+                    <Link href="/apply">
+                        {application ? "Continue your application" : "Start your application"}
+                    </Link>
+                </Button>
             );
         } else if (role === Role.ADMIN || role === Role.MEMBER) {
             return (
-                <Link
-                    className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                    href="/dashboard"
-                >
-                    Dashboard
-                </Link>
+                <Button>
+                    <Link href="/dashboard">
+                        Dashboard
+                    </Link>
+                </Button>
             );
         }
     }
@@ -57,14 +55,14 @@ export default async function Home() {
             <div className="pl-4 pt-2">
                 <Image alt="TCG Logo" height={48} width={136} src="/logo.png" />
             </div>
-            <main className="flex flex-col grow items-center justify-center text-white">
-                <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+            <main className="flex flex-col grow items-center justify-center text-primary-background">
+                <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
                     <h1 className="text-5xl text-center font-extrabold tracking-tight sm:text-[5rem]">
                         Applicant Portal
                     </h1>
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex flex-col items-center justify-center gap-4">
-                            <p className="text-center text-2xl text-white">
+                            <p className="text-center text-2xl">
                                 {session && <span>Welcome back {session.user?.name?.split(" ")[0]}</span>}
                             </p>
                         </div>

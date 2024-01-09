@@ -27,7 +27,7 @@ export default async function Dashboard() {
                 createOption={session.user.role === Role.ADMIN}
                 recruitmentCycles={cycles}
             ></RecruitmentCycleCombobox>
-            <Tabs defaultValue="applications" className="dark h-full">
+            <Tabs defaultValue="applications" className="h-full">
                 <TabsList>
                     <TabsTrigger value="applications">Applications</TabsTrigger>
                     {session.user.role === Role.ADMIN &&
