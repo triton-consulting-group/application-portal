@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { getServerAuthSession } from "~/server/auth";
@@ -6,7 +5,7 @@ import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import Confetti from "./confetti";
 
-export default async function Apply() {
+export default async function Confirmation() {
     const session = await getServerAuthSession();
 
     if (!session) {
@@ -38,10 +37,10 @@ export default async function Apply() {
                 </p>
                 <div className="flex gap-x-2">
                     <Button variant="link" className="py-0">
-                        <Link href="/">Back to home</Link>
+                        <a href="/">Back to home</a>
                     </Button>
                     <Button variant="link" className="py-0">
-                        <Link href="/apply">View Your Application</Link>
+                        <a href="/apply">View Your Application</a>
                     </Button>
                 </div>
             </div>
