@@ -46,7 +46,7 @@ export const getValidator = (question: ApplicationQuestion, server?: boolean): Z
             break;
     }
 
-    if (!question.required) schema = schema.optional();
+    if (!question.required) schema = schema.optional().or(z.string().max(0));
 
     return schema;
 };
