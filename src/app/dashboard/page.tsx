@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "src/components/ui/tabs";
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
@@ -9,12 +9,14 @@ import PhaseCard from "./phase-card";
 import ViewApplications from "./view-applications";
 
 export default async function Dashboard() {
+    // TODO: Replace permanentRedirect with redirect 
+    // https://github.com/vercel/next.js/issues/59800
     const session = await getServerAuthSession();
 
     if (!session) {
-        redirect("/api/auth/signin");
+        permanentRedirect("/api/auth/signin");
     } else if (session.user.role === Role.APPLICANT) {
-        redirect("/");
+        permanentRedirect("/");
     }
 
     const cycles = await api.recruitmentCycle.getAll.query();

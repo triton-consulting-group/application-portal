@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
@@ -6,18 +6,20 @@ import { ApplicationForm } from "./application-form";
 import { type Application } from "../types";
 
 export default async function Apply() {
+    // TODO: Replace permanentRedirect with redirect 
+    // https://github.com/vercel/next.js/issues/59800
     const session = await getServerAuthSession();
 
     if (!session) {
-        redirect("/api/auth/signin");
+        permanentRedirect("/api/auth/signin");
     } else if (session.user.role !== Role.APPLICANT) {
-        redirect("/dashboard");
+        permanentRedirect("/dashboard");
     }
 
     const latestCycle = await api.recruitmentCycle.getActive.query();
 
     if (!latestCycle) {
-        redirect("/");
+        permanentRedirect("/");
     }
 
     let application = await api.application.getUserApplicationByCycleId.query(latestCycle.id);

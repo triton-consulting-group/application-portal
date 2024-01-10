@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { getServerAuthSession } from "~/server/auth";
 import { Role } from "~/server/db/types";
@@ -6,23 +6,25 @@ import { api } from "~/trpc/server";
 import Confetti from "./confetti";
 
 export default async function Confirmation() {
+    // TODO: Replace permanentRedirect with redirect 
+    // https://github.com/vercel/next.js/issues/59800
     const session = await getServerAuthSession();
 
     if (!session) {
-        redirect("/api/auth/signin");
+        permanentRedirect("/api/auth/signin");
     } else if (session.user.role !== Role.APPLICANT) {
-        redirect("/dashboard");
+        permanentRedirect("/dashboard");
     }
 
     const latestCycle = await api.recruitmentCycle.getActive.query();
 
     if (!latestCycle) {
-        redirect("/");
+        permanentRedirect("/");
     }
 
     const application = await api.application.getUserApplicationByCycleId.query(latestCycle.id);
     if (!application || !application.submitted) {
-        redirect("/apply");
+        permanentRedirect("/apply");
     }
     return (
         <>
