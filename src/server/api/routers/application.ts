@@ -120,7 +120,7 @@ export const applicationRouter = createTRPCRouter({
 
             const res = await ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
             if (ctx.session.user.email) {
-                void client.send(new SendEmailCommand({
+                /*void client.send(new SendEmailCommand({
                     Source: "no-reply@ucsdtcg.org",
                     Destination: {
                         ToAddresses: [ctx.session.user.email]
@@ -136,7 +136,7 @@ export const applicationRouter = createTRPCRouter({
                             }
                         }
                     }
-                }));
+                }));*/
             }
 
             return res;
