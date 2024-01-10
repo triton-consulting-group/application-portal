@@ -4,9 +4,10 @@ import { applicationQuestions, applicationResponses, applications, recruitmentCy
 import { and, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getValidator } from "~/lib/validate-question";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESClient, SendTemplatedEmailCommand } from "@aws-sdk/client-ses";
 
 const client = new SESClient();
+const EMAIL_TEMPLATE_NAME = "confirmation_template";
 
 export const applicationRouter = createTRPCRouter({
     getUserApplicationByCycleId: applicantProcedure
@@ -120,22 +121,15 @@ export const applicationRouter = createTRPCRouter({
 
             const res = await ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
             if (ctx.session.user.email) {
-                void client.send(new SendEmailCommand({
+                void client.send(new SendTemplatedEmailCommand({
                     Source: "no-reply@ucsdtcg.org",
                     Destination: {
                         ToAddresses: [ctx.session.user.email]
                     },
-                    Message: {
-                        Subject: { Data: "Application Submission Confirmation" },
-                        Body: {
-                            Text: {
-                                Data: "Thanks for submitting your application. " +
-                                    `This email serves as confirmation of your application submission for cycle ${latestCycle.displayName}. ` +
-                                    "If you have any questions or concerns, email board.tcg@gmail.com.\n" +
-                                    "This email address is not monitored so any messages sent to it will not be read."
-                            }
-                        }
-                    }
+                    Template: EMAIL_TEMPLATE_NAME,
+                    TemplateData: JSON.stringify({
+                        cycleName: latestCycle.displayName
+                    })
                 }));
             }
 

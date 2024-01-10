@@ -35,7 +35,12 @@ export default async function Home() {
             return (
                 <Button>
                     <Link href="/apply">
-                        {application ? "Continue your application" : "Start your application"}
+                        {!application
+                            ? "Start your application"
+                            : application.submitted
+                                ? "View your submitted application"
+                                : "Continue your application"
+                        }
                     </Link>
                 </Button>
             );
