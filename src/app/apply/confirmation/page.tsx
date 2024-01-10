@@ -24,7 +24,6 @@ export default async function Confirmation() {
     if (!application || !application.submitted) {
         redirect("/apply");
     }
-
     return (
         <>
             <Confetti />

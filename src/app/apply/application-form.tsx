@@ -14,6 +14,8 @@ import { createInsertSchema } from "drizzle-zod";
 import { api } from "~/trpc/react";
 import { FieldType } from "~/server/db/types";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Loading from "../loading";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
@@ -32,15 +34,28 @@ export function ApplicationForm({
 }) {
     const [fileUploadQueue, setFileUploadQueue] = useState<string[]>([]);
     const [submitted, setSubmitted] = useState<boolean>(application.submitted);
+    const [loading, setLoading] = useState<boolean>(false);
     const submitApplicationMutation = api.application.submit.useMutation();
     const router = useRouter();
     const submitApplication = async () => {
         setSubmitted(true);
+        setLoading(true);
         while (Object.keys(updateQueue.current).length > 0) {
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
-        await submitApplicationMutation.mutateAsync(application.id);
-        router.push("/apply/confirmation");
+
+        try {
+            await submitApplicationMutation.mutateAsync(application.id);
+            router.push("/apply/confirmation");
+        } catch (e) {
+            toast("An error occured while submitting your application", {
+                description:
+                    "Please try again in a few minutes. " +
+                    "If you continue having issues, please email board.tcg@gmail.com"
+            });
+            setSubmitted(false);
+            setLoading(false);
+        }
     };
 
     const formSchema = z.object(Object.fromEntries(questions.map(q => {
@@ -122,45 +137,51 @@ export function ApplicationForm({
     const formatDate = (d: Date): string => {
         return `${d.toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric" })} ${d.toLocaleTimeString()}`;
     };
-
+    
     return (
-        <div>
-            <div className="flex flex-col gap-y-2 mb-4">
-                <h1 className="text-3xl">Application</h1>
-                <h2 className="mb-2">
-                    {submitted ?
-                        "You've already submitted your application. Keep an eye on your email for any updates to your application." :
-                        `This form autosaves! Feel free to leave and finish your application later. Once you are
-                        ready to submit, click "Submit Application".`
-                    }
-                </h2>
-                {!submitted && <h2>You have until {formatDate(cycle.endTime)} to submit your application.</h2>}
-            </div>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
-                    {questions.map(q => (
-                        <ApplicationQuestion
-                            disabled={submitted}
-                            question={q}
-                            control={form.control}
-                            key={q.id}
-                        ></ApplicationQuestion>
-                    ))}
-                    {!submitted &&
-                        <div className="flex flex-col gap-y-2">
-                            {fileUploadQueue.length > 0 &&
-                                <p>Wait for files to finish uploading...</p>
+        <>
+            { loading ? 
+                <Loading/>
+                :
+                <div>
+                    <div className="flex flex-col gap-y-2 mb-4">
+                        <h1 className="text-3xl">Application</h1>
+                        <h2 className="mb-2">
+                            {submitted ?
+                                "You've already submitted your application. Keep an eye on your email for any updates to your application." :
+                                `This form autosaves! Feel free to leave and finish your application later. Once you are
+                                ready to submit, click "Submit Application".`
                             }
-                            <Button
-                                type="submit"
-                                disabled={fileUploadQueue.length > 0}
-                                className="w-fit"
-                            >Submit Application</Button>
-                        </div>
-                    }
-                </form>
-            </Form>
-        </div>
+                        </h2>
+                        {!submitted && <h2>You have until {formatDate(cycle.endTime)} to submit your application.</h2>}
+                    </div>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(submitApplication)} className="space-y-8">
+                            {questions.map(q => (
+                                <ApplicationQuestion
+                                    disabled={submitted}
+                                    question={q}
+                                    control={form.control}
+                                    key={q.id}
+                                ></ApplicationQuestion>
+                            ))}
+                            {!submitted &&
+                                <div className="flex flex-col gap-y-2">
+                                    {fileUploadQueue.length > 0 &&
+                                        <p>Wait for files to finish uploading...</p>
+                                    }
+                                    <Button
+                                        type="submit"
+                                        disabled={fileUploadQueue.length > 0}
+                                        className="w-fit"
+                                    >Submit Application</Button>
+                                </div>
+                            }
+                        </form>
+                    </Form>
+                </div>
+            }
+        </>
     );
 }
 

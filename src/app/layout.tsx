@@ -9,6 +9,7 @@ import JotaiProvider from "./jotai-provider";
 
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Toaster } from "~/components/ui/sonner";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
                         </TRPCReactProvider>
                     </ThemeProvider>
                 </JotaiProvider>
+                <Toaster />
                 <Analytics />
                 <SpeedInsights />
             </body>
