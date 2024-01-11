@@ -88,16 +88,15 @@ export function ApplicationForm({
     useEffect(() => {
         const uploadFile = async (questionId: string, applicationId: string, file: File, responseId: string | undefined) => {
             setFileUploadQueue([...fileUploadQueue, questionId]);
-            // pre-emptively delete key off queue so it doesn't re-run and re-upload on long uploads
             const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync(file.name);
             await fetch(presignedUrl, { method: "PUT", body: file });
-            setFileUploadQueue(fileUploadQueue.filter(k => k !== questionId));
-            createOrUpdateResponseMutation.mutate({
+            await createOrUpdateResponseMutation.mutateAsync({
                 questionId: questionId,
                 applicationId: applicationId,
                 value: fileName,
                 ... (responseId ? { id: responseId } : {})
             });
+            setFileUploadQueue(fileUploadQueue.filter(k => k !== questionId));
         };
 
         for (const questionId of Object.keys(formWatch)) {
@@ -137,11 +136,11 @@ export function ApplicationForm({
     const formatDate = (d: Date): string => {
         return `${d.toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric" })} ${d.toLocaleTimeString()}`;
     };
-    
+
     return (
         <>
-            { loading ? 
-                <Loading/>
+            {loading ?
+                <Loading />
                 :
                 <div>
                     <div className="flex flex-col gap-y-2 mb-4">
