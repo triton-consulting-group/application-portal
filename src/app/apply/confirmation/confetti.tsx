@@ -1,7 +1,7 @@
 "use client";
 
 import Realistic from "react-canvas-confetti/dist/presets/realistic";
-import { TConductorInstance } from "react-canvas-confetti/dist/types";
+import type { TConductorInstance } from "react-canvas-confetti/dist/types";
 
 export default function Confetti() {
     const onInit = ({
