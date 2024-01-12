@@ -6,7 +6,7 @@ import { api } from "~/trpc/server";
 import { Instagram } from "lucide-react";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
-import type { Application, RecruitmentCycle } from "./types";
+import { Application, RecruitmentCycle } from "./types";
 
 function RecruitmentCycleText({
     activeCycle,
@@ -81,7 +81,7 @@ function ActionButton({
 export default async function Home() {
     const session = await getServerAuthSession();
     const activeCycle = await api.recruitmentCycle.getActive.query();
-    const application = (activeCycle && session) ? await api.application.getUserApplicationByCycleId.query(activeCycle.id) : undefined;
+    const application = (session?.user.role === Role.APPLICANT && activeCycle) ? await api.application.getUserApplicationByCycleId.query(activeCycle.id) : undefined;
 
     return (
         <div className="min-h-screen flex flex-col">
