@@ -81,7 +81,7 @@ function ActionButton({
 export default async function Home() {
     const session = await getServerAuthSession();
     const activeCycle = await api.recruitmentCycle.getActive.query();
-    const application = activeCycle ? await api.application.getUserApplicationByCycleId.query(activeCycle.id) : undefined;
+    const application = (activeCycle && session) ? await api.application.getUserApplicationByCycleId.query(activeCycle.id) : undefined;
 
     return (
         <div className="min-h-screen flex flex-col">
