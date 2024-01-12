@@ -54,8 +54,10 @@ function ActionButton({
 }
 
 export default async function Home() {
-    const session = await getServerAuthSession();
-    const activeCycle = await api.recruitmentCycle.getActive.query();
+    const [session, activeCycle] = await Promise.all([
+        getServerAuthSession(),
+        api.recruitmentCycle.getActive.query()
+    ]);
     const application = (session?.user.role === Role.APPLICANT && activeCycle) ? await api.application.getUserApplicationByCycleId.query(activeCycle.id) : undefined;
 
     return (
