@@ -6,7 +6,7 @@ import { api } from "~/trpc/server";
 import { Instagram } from "lucide-react";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
-import { Application, RecruitmentCycle } from "./types";
+import type { Application, RecruitmentCycle } from "./types";
 
 function RecruitmentCycleText({
     activeCycle,
