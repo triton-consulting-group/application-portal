@@ -102,12 +102,20 @@ export const applicationResponseRouter = createTRPCRouter({
                     code: "BAD_REQUEST"
                 });
             }
+
             // if file upload has a previous response, delete it from s3
             if (response && question.type === FieldType.FILE_UPLOAD && response.value) {
                 await s3Client.send(new DeleteObjectCommand({
                     Bucket: BUCKET_NAME,
                     Key: response.value,
                 }));
+            }
+
+            if (response) {
+                return ctx.db
+                    .update(applicationResponses)
+                    .set(input)
+                    .where(eq(applicationResponses.id, response.id));
             }
 
             return ctx.db

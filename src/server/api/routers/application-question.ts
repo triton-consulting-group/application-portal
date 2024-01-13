@@ -24,7 +24,7 @@ export const applicationQuestionRouter = createTRPCRouter({
         .input(createInsertSchema(applicationQuestions, { options: z.string().array() }))
         .mutation(async ({ ctx, input }) => {
             if (input.type === FieldType.STRING) {
-                if ((input.minLength ?? 0) >= (input.maxLength ?? 1)) {
+                if ((input.minLength ?? 0) > (input.maxLength ?? 1)) {
                     throw new TRPCError({
                         message: "Minimum length can't be larger than maximum length",
                         code: "BAD_REQUEST"
