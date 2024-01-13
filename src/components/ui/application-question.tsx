@@ -23,22 +23,31 @@ function FileUploadQuestionContent({
     return (
         <div className="flex flex-col gap-y-2">
             {typeof field.value === "string" && field.value.length > 0 && (
-                <FormDescription>
-                    You've already uploaded a file. You can view it again by clicking the eye icon or
-                    upload a new file with the input below.
-                </FormDescription>
+                disabled ?
+                    <FormDescription>
+                        View your uploaded file by clicking the eye icon.
+                    </FormDescription>
+                    :
+                    <FormDescription>
+                        You've already uploaded a file. You can view it by clicking the eye icon, or
+                        upload a new file with the input below.
+                    </FormDescription>
             )}
-            <div className="flex gap-x-2">
-                <Input
-                    type="file"
-                    accept="image/png, image/jpeg, application/pdf"
-                    placeholder={question.placeholder ?? ""}
-                    disabled={disabled}
-                    className="w-fit"
-                    onChange={(e) => {
-                        field.onChange(e.target?.files?.[0]);
-                    }}
-                />
+            <div className="flex gap-x-2 items-center">
+                {disabled ?
+                    <p>{field.value}</p>
+                    :
+                    <Input
+                        type="file"
+                        accept="image/png, image/jpeg, application/pdf"
+                        placeholder={question.placeholder ?? ""}
+                        disabled={disabled}
+                        className="w-fit"
+                        onChange={(e) => {
+                            field.onChange(e.target?.files?.[0]);
+                        }}
+                    />
+                }
                 <FileViewerDialog src={field.value} />
             </div>
         </div>
