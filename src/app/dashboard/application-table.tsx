@@ -42,9 +42,11 @@ export default function ApplicationTable({
                         <TableHead className="whitespace-nowrap">Phase</TableHead>
                         {questions.map(q => (
                             <TableHead
-                                className={q.type === FieldType.STRING ? "min-w-[240px]" : ""}
+                                className={q.type === FieldType.STRING ? "min-w-[240px]" : "min-w-[160px]"}
                                 key={q.id}
-                            >{q.displayName}</TableHead>
+                            >
+                                <p className="line-clamp-3">{q.displayName}</p>
+                            </TableHead>
                         ))}
                         <TableHead></TableHead>
                     </TableRow>
@@ -58,7 +60,7 @@ export default function ApplicationTable({
                             {app.responses.map((res, index) => (
                                 <TableCell key={res.id}>
                                     <div className="flex px-2 items-center">
-                                        <p className="line-clamp-3 text-ellipsis overflow-hidden">
+                                        <p className="line-clamp-3 text-ellipsis ">
                                             {res.value}
                                         </p>
                                         {questions[index]?.type === FieldType.FILE_UPLOAD && <FileViewerDialog src={res.value} />}

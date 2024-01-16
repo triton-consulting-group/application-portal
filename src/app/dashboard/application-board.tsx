@@ -129,7 +129,7 @@ function PhaseCard({
         <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] flex flex-col">
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                    {phase ? phase.displayName : "Uncategorized"}
+                    {phase ? phase.displayName : "Uncategorized"} {`(${applications.length})`}
                     <div className="flex">
                         <TooltipProvider delayDuration={100}>
                             <Tooltip>
