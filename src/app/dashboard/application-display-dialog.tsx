@@ -40,7 +40,7 @@ const ApplicationDisplayDialog = forwardRef(function ApplicationDisplayDialog({
                     {asChild ? children : <Button>View Application</Button>}
                 </div>
             </DialogTrigger>
-            <DialogContent className="max-h-[80%] overflow-y-scroll">
+            <DialogContent className="max-h-[80%] overflow-y-scroll max-w-[80%]">
                 <DialogHeader>
                     <DialogTitle>{application.name}'s Application</DialogTitle>
                     <DialogDescription>{application.email}</DialogDescription>
