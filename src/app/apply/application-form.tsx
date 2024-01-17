@@ -50,7 +50,7 @@ export function ApplicationForm({
         } catch (e) {
             toast("An error occured while submitting your application", {
                 description:
-                    "Please try again in a few minutes. " +
+                    "Please refresh the page and try again in a few minutes. " +
                     "If you continue having issues, please email board.tcg@gmail.com"
             });
             setSubmitted(false);
