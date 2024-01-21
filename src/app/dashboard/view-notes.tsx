@@ -64,12 +64,12 @@ const ViewNotes = forwardRef(function ViewNotes({
                 <DialogHeader>
                     <DialogTitle>Notes</DialogTitle>
                 </DialogHeader>
-                { loading ? 
+                {loading ?
                     <div className="flex justify-center items-center">
-                        <Loader2 className="animate-spin"/>
+                        <Loader2 className="animate-spin" />
                     </div> :
-                    <div className="flex flex-col divide-y">
-                        { notes.length === 0 && <div>No notes yet</div> }
+                    <div className="flex flex-col divide-y overflow-hidden">
+                        {notes.length === 0 && <div>No notes yet</div>}
                         {notes.map(note => (
                             <Fragment key={note.id}>
                                 <Collapsible className="pt-2 first:pt-0 mb-2 last:mb-0">
@@ -112,7 +112,7 @@ const ViewNotes = forwardRef(function ViewNotes({
                                         }
                                     </div>
                                     <CollapsibleContent>
-                                        <p className="whitespace-pre-wrap">
+                                        <p className="whitespace-pre-wrap break-words">
                                             {note.content}
                                         </p>
                                     </CollapsibleContent>
