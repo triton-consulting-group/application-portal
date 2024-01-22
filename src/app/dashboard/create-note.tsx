@@ -42,7 +42,7 @@ export default function CreateNote({
 
     const utils = api.useContext();
 
-    const createNote = api.applicationNote.create.useMutation({
+    const createNoteMutation = api.applicationNote.create.useMutation({
         onMutate: async (newNote) => {
             // cancel outgoing refetches that will overwrite data
             await utils.applicationNote.getByApplicationId.cancel();
@@ -62,7 +62,7 @@ export default function CreateNote({
         },
         onSettled: () => utils.applicationNote.getByApplicationId.invalidate(applicationId)
     });
-    const updateNote = api.applicationNote.update.useMutation({
+    const updateNoteMutation = api.applicationNote.update.useMutation({
         onMutate: async (updatedNote) => {
             // cancel outgoing refetches that will overwrite data
             await utils.applicationNote.getByApplicationId.cancel();
@@ -86,9 +86,9 @@ export default function CreateNote({
     const onSubmit = (values: z.infer<typeof noteSchema>) => {
         setOpen(false);
         if (existingNote) {
-            void updateNote.mutateAsync({ noteId: existingNote.id, title: values.title, content: values.content });
+            void updateNoteMutation.mutateAsync({ noteId: existingNote.id, title: values.title, content: values.content });
         } else {
-            void createNote.mutateAsync(values);
+            void createNoteMutation.mutateAsync(values);
             form.reset({ applicationId: applicationId, title: "", content: "" });
         }
     };

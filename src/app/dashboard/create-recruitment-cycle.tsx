@@ -19,10 +19,10 @@ export default function CreateRecruitmentCycle() {
             displayName: "",
         }
     });
-        
+
     const utils = api.useContext();
     const createCycleMutation = api.recruitmentCycle.create.useMutation({
-        onSettled: () => { 
+        onSettled: () => {
             void utils.recruitmentCycle.getAll.invalidate();
             void utils.recruitmentCycle.getActive.invalidate();
         }
