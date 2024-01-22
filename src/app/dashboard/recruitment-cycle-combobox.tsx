@@ -14,14 +14,14 @@ import {
     PopoverTrigger,
 } from "src/components/ui/popover";
 import { cn } from "src/lib/utils";
-import React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "src/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import CreateRecruitmentCycle from "./create-recruitment-cycle";
 import { useHydrateAtoms } from 'jotai/utils';
 import { recruitmentCyclesAtom, selectedRecruitmentCycleAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { type RecruitmentCycle } from "../types";
+import { api } from "~/trpc/react";
 
 export default function RecruitmentCycleCombobox({
     createOption, recruitmentCycles, className
@@ -31,31 +31,27 @@ export default function RecruitmentCycleCombobox({
     className: string
 }) {
     useHydrateAtoms([[recruitmentCyclesAtom, recruitmentCycles]]);
-    const [cycles] = useAtom(recruitmentCyclesAtom);
-    const [open, setOpen] = React.useState(false);
+    const [cycles, setCycles] = useAtom(recruitmentCyclesAtom);
+    const [open, setOpen] = useState(false);
     const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
+    // this query will keep the atom updated
+    api.recruitmentCycle.getAll.useQuery(undefined, {
+        onSuccess: data => setCycles(data)
+    });
 
-    React.useEffect(() => {
+    useEffect(() => {
         setValue(cycles?.[0]?.id ?? "");
-    }, [cycles]);
+    }, [setValue, cycles]);
 
 
     function CreateNew({ createOption }: { createOption: boolean }) {
-        const [open, setOpen] = React.useState<boolean>(false);
-
         if (!createOption) {
             return null;
         }
 
         return (
             <CommandItem className="cursor-pointer">
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger>Create New +</DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>Create New Recruitment Cycle</DialogTitle>
-                        <CreateRecruitmentCycle setDialogOpen={setOpen}></CreateRecruitmentCycle>
-                    </DialogContent>
-                </Dialog>
+                <CreateRecruitmentCycle />
             </CommandItem>
         );
     }
