@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
 import { api } from "~/trpc/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+import { Check, MoreVertical } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import ViewNotes from "./view-notes";
 import ApplicationDisplayDialog from "./application-display-dialog";
@@ -31,12 +31,13 @@ export default function ApplicationTable({
             const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
-            const updatedApplication = { ...previousApplications.find(a => a.id === update.applicationId)! };
-            updatedApplication.phaseId = update.phaseId;
             utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
                 [
-                    updatedApplication,
+                    { 
+                        ...previousApplications.find(a => a.id === update.applicationId)!,
+                        phaseId: update.phaseId
+                    },
                     ...previousApplications.filter(a => a.id !== update.applicationId)
                 ]
             );
@@ -48,11 +49,10 @@ export default function ApplicationTable({
         },
         onSettled: () => utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId)
     });
+
     const setApplicationPhase = (applicationId: string, phaseId: string) => {
         const updatedApplication = displayedApplications.find(a => a.id === applicationId);
         if (!updatedApplication) throw new Error("Application not found");
-        updatedApplication.phaseId = phaseId;
-        updatedApplication.phase = phases.find(p => p.id === phaseId) ?? null;
         void setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
     };
 
@@ -80,7 +80,7 @@ export default function ApplicationTable({
                         <TableRow key={app.id}>
                             <TableCell>{app.name}</TableCell>
                             <TableCell>{app.email}</TableCell>
-                            <TableCell>{app.phase?.displayName ?? ""}</TableCell>
+                            <TableCell>{phases.find(p => p.id === app.phaseId)?.displayName ?? ""}</TableCell>
                             {app.responses.map((res, index) => (
                                 <TableCell key={res.id}>
                                     <div className="flex px-2 items-center">
@@ -109,7 +109,13 @@ export default function ApplicationTable({
                                                             onClick={() => setApplicationPhase(app.id, p.id)}
                                                             className="cursor-pointer"
                                                         >
-                                                            <span>{p.displayName}</span>
+                                                            {
+                                                                p.id === app.phaseId &&
+                                                                <Check
+                                                                    className="mr-2 h-4 w-4"
+                                                                />
+                                                            }
+                                                            {p.displayName}
                                                         </DropdownMenuItem>
                                                     ))}
                                                 </DropdownMenuSubContent>

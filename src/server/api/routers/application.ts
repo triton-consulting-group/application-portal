@@ -41,8 +41,7 @@ export const applicationRouter = createTRPCRouter({
                         eq(applications.cycleId, input),
                         eq(applications.submitted, true)
                     ))
-                    .leftJoin(users, eq(users.id, applications.userId))
-                    .leftJoin(recruitmentCyclePhases, eq(applications.phaseId, recruitmentCyclePhases.id)),
+                    .leftJoin(users, eq(users.id, applications.userId)),
                 ctx.db
                     .select({
                         id: applicationResponses.id,
@@ -61,7 +60,6 @@ export const applicationRouter = createTRPCRouter({
                 ...app.application,
                 email: app?.user?.email ?? "",
                 name: app?.user?.name ?? "",
-                phase: app?.recruitmentCyclePhase,
                 responses: questions.map(q =>
                     responses.find(r => r.applicationId === app.application.id && r.questionId === q.id) ??
                     {

@@ -236,12 +236,13 @@ export default function ApplicationBoard({
             const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
-            const updatedApplication = { ...previousApplications.find(a => a.id === update.applicationId)! };
-            updatedApplication.phaseId = update.phaseId;
             utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
                 [
-                    updatedApplication,
+                    { 
+                        ...previousApplications.find(a => a.id === update.applicationId)!,
+                        phaseId: update.phaseId
+                    },
                     ...previousApplications.filter(a => a.id !== update.applicationId)
                 ]
             );
@@ -276,22 +277,21 @@ export default function ApplicationBoard({
 
         // over.id can be an app or phase id, this finds the phase no matter what
         const overApp = displayedApplications.find(a => a.id === over.id);
-        const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
-
-        const applicationQueryData = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
-        const newApp = applicationQueryData.find(a => a.id === active.id);
-        if (!newApp) throw new Error("Dragged application not found");
-        newApp.phaseId = phase?.id ?? null;
-        newApp.phase = phase ?? null;
+        const phaseId = (overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id))?.id ?? null;
+        
+        const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
         utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
             cycleId,
-            structuredClone([
-                newApp,
-                ...applicationQueryData.filter(a => a.id !== active.id)
-            ])
+            [
+                {
+                    ...previousApplications.find(a => a.id === active.id)!,
+                    phaseId: phaseId 
+                },
+                ...previousApplications.filter(a => a.id !== active.id)
+            ]
         );
     };
-
+    
     return (
         <div className="flex flex-row shrink-0 gap-x-5 mb-2 overflow-x-scroll">
             <DndContext
