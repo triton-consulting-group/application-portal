@@ -27,32 +27,32 @@ export default function ApplicationTable({
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
         onMutate: async (update) => {
             // cancel outgoing refetches that will overwrite data
-            await utils.application.getApplicationsByCycleId.invalidate(cycleId);
-            const previousApplications = utils.application.getApplicationsByCycleId.getData(cycleId)!;
+            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId);
+            const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
-            const updatedApplication = { ...previousApplications.find(a => a.application.id === update.applicationId)! };
-            updatedApplication.application.phaseId = update.phaseId;
-            utils.application.getApplicationsByCycleId.setData(
+            const updatedApplication = { ...previousApplications.find(a => a.id === update.applicationId)! };
+            updatedApplication.phaseId = update.phaseId;
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
                 [
                     updatedApplication,
-                    ...previousApplications.filter(a => a.application.id !== update.applicationId)
+                    ...previousApplications.filter(a => a.id !== update.applicationId)
                 ]
             );
 
             return { previousApplications };
         },
         onError: (_err, _update, context) => {
-            utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(cycleId, context?.previousApplications);
         },
-        onSettled: () => utils.application.getApplicationsByCycleId.invalidate(cycleId)
+        onSettled: () => utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId)
     });
     const setApplicationPhase = (applicationId: string, phaseId: string) => {
         const updatedApplication = displayedApplications.find(a => a.id === applicationId);
         if (!updatedApplication) throw new Error("Application not found");
         updatedApplication.phaseId = phaseId;
-        updatedApplication.phase = phases.find(p => p.id === phaseId);
+        updatedApplication.phase = phases.find(p => p.id === phaseId) ?? null;
         void setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
     };
 
