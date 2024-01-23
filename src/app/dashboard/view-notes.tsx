@@ -22,7 +22,7 @@ const ViewNotes = forwardRef(function ViewNotes({
     const [userId, setUserId] = useState<string>("");
     const [open, setOpen] = useState<boolean>(false);
     const utils = api.useContext();
-    const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId);
+    const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: open });
     const deleteNoteMutation = api.applicationNote.delete.useMutation({
         onMutate: async (noteId) => {
             // cancel outgoing refetches that will overwrite data

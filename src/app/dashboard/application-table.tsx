@@ -2,7 +2,6 @@
 
 import { useAtom } from "jotai";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
-import { applicationsAtom } from "./atoms";
 import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
 import { api } from "~/trpc/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
@@ -12,6 +11,7 @@ import ViewNotes from "./view-notes";
 import ApplicationDisplayDialog from "./application-display-dialog";
 import { FieldType } from "~/server/db/types";
 import FileViewerDialog from "~/components/ui/file-viewer-dialog";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 
 export default function ApplicationTable({
     displayedApplications,
@@ -22,16 +22,38 @@ export default function ApplicationTable({
     questions: ApplicationQuestion[],
     phases: RecruitmentCyclePhase[]
 }) {
-    const [applications, setApplications] = useAtom(applicationsAtom);
+    const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
+    const utils = api.useContext();
+    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
+        onMutate: async (update) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.application.getApplicationsByCycleId.invalidate(cycleId);
+            const previousApplications = utils.application.getApplicationsByCycleId.getData(cycleId)!;
 
-    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
-    const setApplicationPhase = async (applicationId: string, phaseId: string) => {
-        const updatedApplication = applications.find(a => a.id === applicationId);
+            // optimistically update application phase
+            const updatedApplication = { ...previousApplications.find(a => a.application.id === update.applicationId)! };
+            updatedApplication.application.phaseId = update.phaseId;
+            utils.application.getApplicationsByCycleId.setData(
+                cycleId,
+                [
+                    updatedApplication,
+                    ...previousApplications.filter(a => a.application.id !== update.applicationId)
+                ]
+            );
+
+            return { previousApplications }
+        },
+        onError: (_err, _update, context) => {
+            utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);
+        },
+        onSettled: () => utils.application.getApplicationsByCycleId.invalidate(cycleId)
+    });
+    const setApplicationPhase = (applicationId: string, phaseId: string) => {
+        const updatedApplication = displayedApplications.find(a => a.id === applicationId);
         if (!updatedApplication) throw new Error("Application not found");
         updatedApplication.phaseId = phaseId;
         updatedApplication.phase = phases.find(p => p.id === phaseId);
-        setApplications([...applications.filter(a => a.id !== applicationId), updatedApplication]);
-        await setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
+        void setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
     };
 
     return (

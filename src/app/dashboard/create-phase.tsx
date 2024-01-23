@@ -48,10 +48,9 @@ export default function CreatePhase({
             const previousPhases = utils.recruitmentCyclePhase.getByCycleId.getData(recruitmentCycle);
 
             // optimistically update phases 
-            const updatedPhases = [...(previousPhases ?? []), { ...newPhase, id: "", order: Number.MAX_SAFE_INTEGER }];
             utils.recruitmentCyclePhase.getByCycleId.setData(
                 recruitmentCycle,
-                updatedPhases
+                [...(previousPhases ?? []), { ...newPhase, id: "", order: Number.MAX_SAFE_INTEGER }]
             );
 
             return { previousPhases };
@@ -69,9 +68,8 @@ export default function CreatePhase({
 
             // optimistically update phases and make sure to preserve phase order
             const updatedPhaseIndex = previousPhases.findIndex(p => p.id === updatedPhase.id);
-            const newPhase = { ...previousPhases[updatedPhaseIndex]!, ...updatedPhase };
             const updatedPhases = [...previousPhases];
-            updatedPhases[updatedPhaseIndex] = newPhase;
+            updatedPhases[updatedPhaseIndex] = { ...previousPhases[updatedPhaseIndex]!, ...updatedPhase };
             utils.recruitmentCyclePhase.getByCycleId.setData(
                 recruitmentCycle,
                 updatedPhases

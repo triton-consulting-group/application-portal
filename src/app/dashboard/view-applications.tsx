@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { applicationsAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { type ApplicationWithResponses } from "../types";
@@ -28,18 +28,19 @@ type Filter = { questionId: string, value: string, type: FilterType };
 
 export default function ViewApplications() {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
-    const [applications, setApplications] = useAtom(applicationsAtom);
+    const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
     const [displayedApplications, setDisplayedApplications] = useState<ApplicationWithResponses[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     const { data: questionsData, isLoading: questionsLoading } = api.applicationQuestion.getByCycle.useQuery(cycleId);
-    const { data: applicationsData, isLoading: applicationsLoading } = api.application.getApplicationsByCycleId.useQuery(cycleId);
+    const { data: applicationsData, dataUpdatedAt, isLoading: applicationsLoading } = api.application.getApplicationsByCycleId.useQuery(cycleId);
     const { data: responsesData, isLoading: responsesLoading } = api.applicationResponse.getResponsesByCycleId.useQuery(cycleId);
     const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
 
+    // i have no idea why, but this doesn't fire on applicationsData updating even though 
+    // the reference should change because it is a new array being created in setApplicationPhaseIdMutation
     useEffect(() => {
         if (!applicationsData || !questionsData || !responsesData || !phasesData) return;
-
         const applicationsWithResponses = applicationsData
             .filter(app => app.application.submitted)
             .map((app): ApplicationWithResponses => ({
@@ -59,7 +60,7 @@ export default function ViewApplications() {
             }));
         setApplications(applicationsWithResponses);
         setDisplayedApplications(applicationsWithResponses);
-    }, [cycleId, applicationsData, phasesData, responsesData, questionsData, setApplications]);
+    }, [cycleId, applicationsData, phasesData, responsesData, questionsData, setApplications, dataUpdatedAt]);
 
     const [filters, setFilters] = useState<Filter[]>([]);
     const createFilterForm = useForm<Filter>();

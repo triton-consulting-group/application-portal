@@ -2,8 +2,6 @@
 
 import { DndContext, type DragEndEvent, type DragOverEvent, DragOverlay, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
-import { applicationsAtom } from "./atoms";
-import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -16,6 +14,8 @@ import ApplicationDisplayDialog from "./application-display-dialog";
 import ViewNotes from "./view-notes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useAtom } from "jotai";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 
 function SortableApplication({
     application,
@@ -225,15 +225,39 @@ export default function ApplicationBoard({
     questions: ApplicationQuestion[],
     phases: RecruitmentCyclePhase[],
 }) {
-    const [applications, setApplications] = useAtom(applicationsAtom);
+    const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
     const sensors = useSensors(useSensor(PointerSensor));
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
-    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
+    const utils = api.useContext();
+    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
+        onMutate: async (update) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.application.getApplicationsByCycleId.invalidate(cycleId); 
+            const previousApplications = utils.application.getApplicationsByCycleId.getData(cycleId)!;
+            
+            // optimistically update application phase
+            const updatedApplication = { ...previousApplications.find(a => a.application.id === update.applicationId)! };
+            updatedApplication.application.phaseId = update.phaseId;
+            utils.application.getApplicationsByCycleId.setData(
+                cycleId,
+                [
+                    updatedApplication,
+                    ...previousApplications.filter(a => a.application.id !== update.applicationId)
+                ]
+            );
+
+            return {previousApplications}
+        },
+        onError: (_err, _update, context) => {
+            utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);
+        },
+        onSettled: () => utils.application.getApplicationsByCycleId.invalidate(cycleId)
+    });
 
     const handleDragEnd = ({ active }: { active: DragEndEvent['active'] }) => {
         setActive(null);
         // handle drag over already set the phase id, so now just commit the change 
-        const application = applications.find(a => a.id === active.id);
+        const application = displayedApplications.find(a => a.id === active.id);
         if (!application) throw new Error("Dragged application not found");
         void setApplicationPhaseIdMutation.mutateAsync(
             { applicationId: application.id, phaseId: application.phaseId }
@@ -248,20 +272,23 @@ export default function ApplicationBoard({
 
     const handleDragOver = ({ active, over }: { active: DragOverEvent['active'], over: DragOverEvent['over'] }) => {
         if (!over) return;
-        const modifiedApplication = applications.find(a => a.id === active.id);
-        if (!modifiedApplication) throw new Error("Dragged application not found");
         if (over.id === active.id) return;
 
         // over.id can be an app or phase id, this finds the phase no matter what
-        const overApp = applications.find(a => a.id === over.id);
+        const overApp = displayedApplications.find(a => a.id === over.id);
         const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
-        modifiedApplication.phaseId = phase?.id ?? null;
-        modifiedApplication.phase = phases.find(p => p.id === over.id);
-
-        setApplications([
-            modifiedApplication,
-            ...applications.filter(a => a.id !== active.id)
-        ]);
+        
+        const applicationQueryData = utils.application.getApplicationsByCycleId.getData(cycleId)!
+        const newApp = applicationQueryData.find(a => a.application.id === active.id);
+        if (!newApp) throw new Error("Dragged application not found");
+        newApp.application.phaseId = phase?.id ?? null;
+        utils.application.getApplicationsByCycleId.setData(
+            cycleId,
+            [
+                newApp,
+                ...applicationQueryData.filter(a => a.application.id !== active.id)
+            ]
+        );
     };
 
     return (

@@ -84,22 +84,21 @@ export default function CreateQuestion({
             const previousQuestions = utils.applicationQuestion.getByCycle.getData(recruitmentCycle);
 
             // optimistically update questions, adding the new question to the end
-            const updatedQuestions = [
-                ...(previousQuestions ?? []),
-                {
-                    description: null,
-                    placeholder: null,
-                    options: null,
-                    maxLength: null,
-                    minLength: null,
-                    ...newQuestion,
-                    id: "",
-                    order: Number.MAX_SAFE_INTEGER
-                }
-            ];
             utils.applicationQuestion.getByCycle.setData(
                 recruitmentCycle,
-                updatedQuestions
+                [
+                    ...(previousQuestions ?? []),
+                    {
+                        description: null,
+                        placeholder: null,
+                        options: null,
+                        maxLength: null,
+                        minLength: null,
+                        ...newQuestion,
+                        id: "",
+                        order: Number.MAX_SAFE_INTEGER
+                    }
+                ]
             );
 
             return { previousQuestions };
@@ -107,7 +106,7 @@ export default function CreateQuestion({
         onError: (_err, _newQuestion, context) => {
             utils.applicationQuestion.getByCycle.setData(recruitmentCycle, context?.previousQuestions);
         },
-        onSettled: () => utils.applicationQuestion.invalidate()
+        onSettled: () => utils.applicationQuestion.getByCycle.invalidate(recruitmentCycle)
     });
     const updateQuestion = api.applicationQuestion.update.useMutation({
         onMutate: async (updatedQuestion) => {
@@ -117,9 +116,8 @@ export default function CreateQuestion({
 
             // optimistically update questions and preserve order
             const updatedQuestionIndex = previousQuestions.findIndex(q => q.id === updatedQuestion.id);
-            const newQuestion = { ...previousQuestions[updatedQuestionIndex]!, ...updatedQuestion };
             const updatedQuestions = [...previousQuestions];
-            updatedQuestions[updatedQuestionIndex] = newQuestion;
+            updatedQuestions[updatedQuestionIndex] = { ...previousQuestions[updatedQuestionIndex]!, ...updatedQuestion };
             utils.applicationQuestion.getByCycle.setData(
                 recruitmentCycle,
                 updatedQuestions
