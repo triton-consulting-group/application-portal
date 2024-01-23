@@ -2,7 +2,7 @@
 
 import { useAtom } from "jotai";
 import { selectedRecruitmentCycleAtom } from "./atoms";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "~/trpc/react";
 import { type ApplicationWithResponses } from "../types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -49,8 +49,8 @@ export default function ViewApplications() {
 
     const { data: questionsData, isLoading: questionsLoading } = api.applicationQuestion.getByCycle.useQuery(cycleId);
     const { data: applicationsData, isLoading: applicationsLoading } = api.application.getSubmittedApplicationsWithResponsesByCycleId.useQuery(cycleId, {
-        select: data => {
-            return filterApplicationsByNameOrEmail(data, "name", searchQuery)
+        select: data =>
+            filterApplicationsByNameOrEmail(data, "name", searchQuery)
                 .filter(a =>
                     filters.every(f => {
                         const response = a.responses.find(r => r.questionId === f.questionId);
@@ -60,7 +60,6 @@ export default function ViewApplications() {
                         if (f.type === FilterType.CONTAIN) return response.value.trim().toLowerCase().includes(f.value.toLowerCase());
                     })
                 )
-        }
     });
     const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
 

@@ -5,7 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getValidator } from "~/lib/validate-question";
 import { SESClient, SendTemplatedEmailCommand } from "@aws-sdk/client-ses";
-import { ApplicationWithResponses } from "~/app/types";
+import type { ApplicationWithResponses } from "~/app/types";
 
 const client = new SESClient();
 const EMAIL_TEMPLATE_NAME = "confirmation_template";
