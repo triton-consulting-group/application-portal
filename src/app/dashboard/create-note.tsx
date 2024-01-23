@@ -1,4 +1,4 @@
-import { type Dispatch, type ReactNode, type SetStateAction, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { type ApplicationNote } from "../types";
 import { createInsertSchema } from "drizzle-zod";
 import { applicationNotes } from "~/server/db/schema";
@@ -10,19 +10,18 @@ import { Button } from "~/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
+import { getSession } from "next-auth/react";
 
 const noteSchema = createInsertSchema(applicationNotes, { authorId: z.string().optional() });
 
 export default function CreateNote({
     applicationId,
-    setNotes,
     existingNote,
     children,
     asChild,
     disabled
 }: {
     applicationId: string,
-    setNotes: Dispatch<SetStateAction<(ApplicationNote & { authorName: string | null })[]>>
     existingNote?: ApplicationNote,
     children?: ReactNode,
     asChild?: boolean,
@@ -39,21 +38,59 @@ export default function CreateNote({
         }
     });
 
-    useEffect(() => { form.reset(); }, [existingNote]);
+    useEffect(() => form.reset(existingNote), [existingNote, form]);
 
-    const createNote = api.applicationNote.create.useMutation();
-    const updateNote = api.applicationNote.update.useMutation();
-    const getNotes = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: false });
+    const utils = api.useContext();
 
-    const onSubmit = async (values: z.infer<typeof noteSchema>) => {
-        if (existingNote) {
-            await updateNote.mutateAsync({ noteId: existingNote.id, title: values.title, content: values.content });
-        } else {
-            await createNote.mutateAsync(values);
-        }
+    const createNoteMutation = api.applicationNote.create.useMutation({
+        onMutate: async (newNote) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.applicationNote.getByApplicationId.cancel();
+            const previousNotes = utils.applicationNote.getByApplicationId.getData(applicationId) ?? [];
+
+            // optimistically update notes
+            const user = (await getSession())?.user;
+            utils.applicationNote.getByApplicationId.setData(
+                applicationId,
+                [{ ...newNote, authorName: user?.name ?? "", authorId: user?.id ?? "", id: "" }, ...previousNotes]
+            );
+
+            return { previousNotes };
+        },
+        onError: (_err, _newNote, context) => {
+            utils.applicationNote.getByApplicationId.setData(applicationId, context?.previousNotes);
+        },
+        onSettled: () => utils.applicationNote.getByApplicationId.invalidate(applicationId)
+    });
+    const updateNoteMutation = api.applicationNote.update.useMutation({
+        onMutate: async (updatedNote) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.applicationNote.getByApplicationId.cancel();
+            const previousNotes = utils.applicationNote.getByApplicationId.getData(applicationId) ?? [];
+
+            // optimistically update notes
+            const newNote = { ...previousNotes.find(n => n.id === updatedNote.noteId)!, ...updatedNote };
+            utils.applicationNote.getByApplicationId.setData(
+                applicationId,
+                [newNote, ...previousNotes.filter(n => n.id !== updatedNote.noteId)],
+            );
+
+            return { previousNotes };
+        },
+        onError: (_err, _newNote, context) => {
+            utils.applicationNote.getByApplicationId.setData(applicationId, context?.previousNotes);
+        },
+        onSettled: () => utils.applicationNote.getByApplicationId.invalidate(applicationId)
+    });
+
+    const onSubmit = (values: z.infer<typeof noteSchema>) => {
         setOpen(false);
-        form.reset();
-        setNotes((await getNotes.refetch()).data ?? []);
+        if (existingNote) {
+            void updateNoteMutation.mutateAsync({ noteId: existingNote.id, title: values.title, content: values.content });
+        } else {
+            void createNoteMutation.mutateAsync(values);
+            form.reset({ applicationId: applicationId, title: "", content: "" });
+        }
     };
 
     return (

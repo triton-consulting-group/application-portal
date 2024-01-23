@@ -1,33 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { GripVertical, Pencil, Trash2, X } from "lucide-react";
 import { useAtom } from "jotai";
-import { recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 import { api } from "~/trpc/react";
 import CreatePhase from "./create-phase";
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { RecruitmentCyclePhase } from "../types";
 
 export default function PhaseCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [editing, setEditing] = useState<boolean>(false);
-    const [phases, setPhases] = useAtom(recruitmentCyclePhasesAtom);
-    const getPhases = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle, { enabled: false });
-    const reorderPhases = api.recruitmentCyclePhase.reorder.useMutation();
-    const deletePhaseMutation = api.recruitmentCyclePhase.delete.useMutation();
+
+    const utils = api.useContext();
+    const getRecruitmentCyclePhaseQuery = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle);
+    const reorderPhases = api.recruitmentCyclePhase.reorder.useMutation({
+        onMutate: async (orderedIds) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.recruitmentCyclePhase.getByCycleId.cancel();
+            const previousPhases = utils.recruitmentCyclePhase.getByCycleId.getData(recruitmentCycle) ?? [];
+
+            // optimistically update phase order
+            utils.recruitmentCyclePhase.getByCycleId.setData(
+                recruitmentCycle,
+                orderedIds.map(id => previousPhases.find(p => p.id === id)!)
+            );
+
+            return { previousPhases };
+        },
+        onError: (_err, _orderedIds, context) => {
+            utils.recruitmentCyclePhase.getByCycleId.setData(recruitmentCycle, context?.previousPhases);
+        },
+        onSettled: () => utils.recruitmentCyclePhase.getByCycleId.invalidate()
+    });
+    const deletePhaseMutation = api.recruitmentCyclePhase.delete.useMutation({
+        onMutate: async (deletedId) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.recruitmentCyclePhase.getByCycleId.cancel();
+            const previousPhases = utils.recruitmentCyclePhase.getByCycleId.getData(recruitmentCycle) ?? [];
+
+            // optimistically update phases
+            utils.recruitmentCyclePhase.getByCycleId.setData(
+                recruitmentCycle,
+                previousPhases.filter(p => p.id !== deletedId)
+            );
+
+            return { previousPhases };
+        },
+        onError: (_err, _deletedId, context) => {
+            utils.recruitmentCyclePhase.getByCycleId.setData(recruitmentCycle, context?.previousPhases);
+        },
+        onSettled: () => utils.recruitmentCyclePhase.getByCycleId.invalidate()
+    });
+
     const sensors = useSensors(useSensor(PointerSensor));
-
-    const deletePhase = async (id: string) => {
-        setPhases(phases.filter(p => p.id !== id));
-        void await deletePhaseMutation.mutateAsync(id);
-    };
-
     const handleDragEnd = (e: DragEndEvent) => {
         const { active, over } = e;
+        const phases = getRecruitmentCyclePhaseQuery.data ?? [];
         if (over && active.id !== over.id) {
             const activeIdx = phases.findIndex(q => q.id === active.id);
             const overIdx = phases.findIndex(q => q.id === over.id);
@@ -46,25 +80,11 @@ export default function PhaseCard() {
                     phases[activeIdx]!
                 );
             }
-            setPhases(newQuestions.map((q, idx) => {
-                q.order = idx;
-                return q;
-            }));
-            void reorderPhases.mutateAsync(newQuestions.map(q => q.id ?? ""));
+            void reorderPhases.mutateAsync(newQuestions.map(q => q.id));
         }
     };
 
-    useEffect(() => {
-        const fetchPhases = async () => {
-            if (recruitmentCycle) {
-                const phases = (await getPhases.refetch()).data ?? [];
-                setPhases(phases);
-            }
-        };
-        void fetchPhases();
-    }, [recruitmentCycle]);
-
-    function SortablePhase({ p }: { p: typeof phases[number] }) {
+    function SortablePhase({ p }: { p: RecruitmentCyclePhase }) {
         const {
             attributes,
             listeners,
@@ -91,7 +111,7 @@ export default function PhaseCard() {
             >
                 <div className="flex flex-row items-center">
                     {editing && (
-                        <Button variant="ghost" className="p-0 mr-3 ml-2 h-6 w-6" onClick={() => deletePhase(p.id)}>
+                        <Button variant="ghost" className="p-0 mr-3 ml-2 h-6 w-6" onClick={() => deletePhaseMutation.mutate(p.id)}>
                             <Trash2 />
                         </Button>
                     )}
@@ -126,18 +146,23 @@ export default function PhaseCard() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col flex-grow gap-y-2 divide-y">
-                {!recruitmentCycle && "Select a recruitment cycle first"}
-                {recruitmentCycle && !phases.length && "No phases have been created"}
-                <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                    <SortableContext
-                        strategy={verticalListSortingStrategy}
-                        items={phases.map(p => p.id)}
-                    >
-                        {phases.map(p => (
-                            <SortablePhase p={p} key={p.id}></SortablePhase>
-                        ))}
-                    </SortableContext>
-                </DndContext>
+                {getRecruitmentCyclePhaseQuery.isLoading ?
+                    <div></div> :
+                    <>
+                        {!recruitmentCycle && "Select a recruitment cycle first"}
+                        {recruitmentCycle && !getRecruitmentCyclePhaseQuery.data?.length && "No phases have been created"}
+                        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                            <SortableContext
+                                strategy={verticalListSortingStrategy}
+                                items={(getRecruitmentCyclePhaseQuery.data ?? []).map(p => p.id)}
+                            >
+                                {(getRecruitmentCyclePhaseQuery.data ?? []).map(p => (
+                                    <SortablePhase p={p} key={p.id}></SortablePhase>
+                                ))}
+                            </SortableContext>
+                        </DndContext>
+                    </>
+                }
             </CardContent>
             <CardFooter className="flex flex-wrap gap-y-4">
                 <CreatePhase></CreatePhase>

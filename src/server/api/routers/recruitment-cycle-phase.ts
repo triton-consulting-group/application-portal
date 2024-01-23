@@ -12,7 +12,8 @@ export const recruitmentCyclePhaseRouter = createTRPCRouter({
             return ctx.db
                 .select()
                 .from(recruitmentCyclePhases)
-                .where(eq(recruitmentCyclePhases.cycleId, input));
+                .where(eq(recruitmentCyclePhases.cycleId, input))
+                .orderBy(recruitmentCyclePhases.order);
         }),
     create: adminProcedure
         .input(createInsertSchema(recruitmentCyclePhases))

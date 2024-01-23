@@ -2,7 +2,6 @@ import { Fragment, type ReactNode, useEffect, useState, forwardRef, type Forward
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-import { type ApplicationNote } from "../types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { ChevronsUpDown, Loader2, Pencil, Trash2, X } from "lucide-react";
 import CreateNote from "./create-note";
@@ -19,31 +18,34 @@ const ViewNotes = forwardRef(function ViewNotes({
     asChild?: boolean
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }, ref: ForwardedRef<any>) {
-    const [notes, setNotes] = useState<(ApplicationNote & { authorName: string | null })[]>([]);
     const [editing, setEditing] = useState<boolean>(false);
     const [userId, setUserId] = useState<string>("");
     const [open, setOpen] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(false);
-    const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: false });
-    const deleteNoteMutation = api.applicationNote.delete.useMutation();
+    const utils = api.useContext();
+    const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId);
+    const deleteNoteMutation = api.applicationNote.delete.useMutation({
+        onMutate: async (noteId) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.applicationNote.getByApplicationId.cancel();
+            const previousNotes = utils.applicationNote.getByApplicationId.getData(applicationId);
 
-    const deleteNote = async (noteId: string) => {
-        setNotes(notes.filter(n => n.id !== noteId));
-        await deleteNoteMutation.mutateAsync(noteId);
-    };
+            // optimistically update notes
+            utils.applicationNote.getByApplicationId.setData(
+                applicationId,
+                previousNotes?.filter(n => n.id !== noteId)
+            );
+
+            return { previousNotes };
+        },
+        onSettled: () => utils.applicationNote.getByApplicationId.invalidate(applicationId),
+        onError: (_err, _deletedId, context) => {
+            utils.applicationNote.getByApplicationId.setData(applicationId, context?.previousNotes);
+        },
+    });
 
     const fetchUserId = async () => {
         setUserId((await getSession())?.user.id ?? "");
     };
-
-    useEffect(() => {
-        const fetchNotes = async () => {
-            setLoading(true);
-            setNotes((await getNotesQuery.refetch()).data ?? []);
-            setLoading(false);
-        };
-        if (open) void fetchNotes();
-    }, [open, applicationId]);
 
     useEffect(() => {
         void fetchUserId();
@@ -64,20 +66,19 @@ const ViewNotes = forwardRef(function ViewNotes({
                 <DialogHeader>
                     <DialogTitle>Notes</DialogTitle>
                 </DialogHeader>
-                {loading ?
+                {getNotesQuery.isLoading ?
                     <div className="flex justify-center items-center">
                         <Loader2 className="animate-spin" />
                     </div> :
                     <div className="flex flex-col divide-y overflow-hidden">
-                        {notes.length === 0 && <div>No notes yet</div>}
-                        {notes.map(note => (
+                        {getNotesQuery.data?.length === 0 && <div>No notes yet</div>}
+                        {getNotesQuery.data?.map(note => (
                             <Fragment key={note.id}>
                                 <Collapsible className="pt-2 first:pt-0 mb-2 last:mb-0">
                                     <div className="flex justify-between items-center">
                                         <CreateNote
                                             applicationId={applicationId}
                                             existingNote={note}
-                                            setNotes={setNotes}
                                             disabled={!editing || userId !== note.authorId}
                                             asChild
                                         >
@@ -96,7 +97,7 @@ const ViewNotes = forwardRef(function ViewNotes({
                                                         variant="ghost"
                                                         size="sm"
                                                         className="w-9 p-0"
-                                                        onClick={() => deleteNote(note.id ?? "")}
+                                                        onClick={() => deleteNoteMutation.mutate(note.id)}
                                                     >
                                                         <Trash2 />
                                                     </Button>
@@ -131,7 +132,6 @@ const ViewNotes = forwardRef(function ViewNotes({
                         </Button>
                         <CreateNote
                             applicationId={applicationId}
-                            setNotes={setNotes}
                         ></CreateNote>
                     </div>
                 </DialogFooter>
