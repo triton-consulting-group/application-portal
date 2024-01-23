@@ -78,7 +78,7 @@ export default function ViewApplications() {
                 ...applicationsData?.map(a => [
                     sanitizeString(a.name ?? ""),
                     sanitizeString(a.email),
-                    sanitizeString(a.phase?.displayName ?? ""),
+                    sanitizeString(phasesData?.find(p => p.id === a.phaseId)?.displayName ?? ""),
                     ...a.responses.map(r => sanitizeString(r.value))
                 ].join(",")) ?? ""
             ].join("\n")
