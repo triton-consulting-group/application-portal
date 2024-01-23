@@ -31,15 +31,15 @@ export default function ApplicationTable({
             const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
+            const updatedApplications = [...previousApplications];
+            const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === update.applicationId);
+            updatedApplications[updatedApplicationIndex] = {
+                ...previousApplications.find(a => a.id === update.applicationId)!,
+                phaseId: update.phaseId
+            };
             utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
-                [
-                    { 
-                        ...previousApplications.find(a => a.id === update.applicationId)!,
-                        phaseId: update.phaseId
-                    },
-                    ...previousApplications.filter(a => a.id !== update.applicationId)
-                ]
+                updatedApplications
             );
 
             return { previousApplications };

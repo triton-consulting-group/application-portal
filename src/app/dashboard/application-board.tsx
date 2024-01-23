@@ -236,15 +236,15 @@ export default function ApplicationBoard({
             const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
+            const updatedApplications = [...previousApplications];
+            const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === update.applicationId);
+            updatedApplications[updatedApplicationIndex] = {
+                ...previousApplications.find(a => a.id === update.applicationId)!,
+                phaseId: update.phaseId
+            };
             utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
-                [
-                    { 
-                        ...previousApplications.find(a => a.id === update.applicationId)!,
-                        phaseId: update.phaseId
-                    },
-                    ...previousApplications.filter(a => a.id !== update.applicationId)
-                ]
+                updatedApplications
             );
 
             return { previousApplications };
@@ -278,20 +278,20 @@ export default function ApplicationBoard({
         // over.id can be an app or phase id, this finds the phase no matter what
         const overApp = displayedApplications.find(a => a.id === over.id);
         const phaseId = (overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id))?.id ?? null;
-        
+
         const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
+        const updatedApplications = [...previousApplications];
+        const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === active.id);
+        updatedApplications[updatedApplicationIndex] = {
+            ...previousApplications.find(a => a.id === active.id)!,
+            phaseId: phaseId
+        };
         utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
             cycleId,
-            [
-                {
-                    ...previousApplications.find(a => a.id === active.id)!,
-                    phaseId: phaseId 
-                },
-                ...previousApplications.filter(a => a.id !== active.id)
-            ]
+            updatedApplications
         );
     };
-    
+
     return (
         <div className="flex flex-row shrink-0 gap-x-5 mb-2 overflow-x-scroll">
             <DndContext
