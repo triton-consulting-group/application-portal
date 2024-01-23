@@ -41,7 +41,7 @@ export default function ApplicationTable({
                 ]
             );
 
-            return { previousApplications }
+            return { previousApplications };
         },
         onError: (_err, _update, context) => {
             utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);

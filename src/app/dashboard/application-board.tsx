@@ -246,7 +246,7 @@ export default function ApplicationBoard({
                 ]
             );
 
-            return {previousApplications}
+            return {previousApplications};
         },
         onError: (_err, _update, context) => {
             utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);
@@ -278,7 +278,7 @@ export default function ApplicationBoard({
         const overApp = displayedApplications.find(a => a.id === over.id);
         const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
         
-        const applicationQueryData = utils.application.getApplicationsByCycleId.getData(cycleId)!
+        const applicationQueryData = utils.application.getApplicationsByCycleId.getData(cycleId)!;
         const newApp = applicationQueryData.find(a => a.application.id === active.id);
         if (!newApp) throw new Error("Dragged application not found");
         newApp.application.phaseId = phase?.id ?? null;
