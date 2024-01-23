@@ -27,7 +27,7 @@ export default function ApplicationTable({
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
         onMutate: async (update) => {
             // cancel outgoing refetches that will overwrite data
-            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId);
+            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.cancel(cycleId);
             const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
 
             // optimistically update application phase
