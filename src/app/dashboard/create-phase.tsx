@@ -7,7 +7,7 @@ import { recruitmentCyclePhases } from "~/server/db/schema";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { useAtom } from "jotai";
-import { recruitmentCyclePhasesAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
@@ -25,7 +25,6 @@ export default function CreatePhase({
     asChild?: boolean,
     disabled?: boolean
 }) {
-    const [, setPhases] = useAtom(recruitmentCyclePhasesAtom);
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [open, setOpen] = useState<boolean>(false);
     const setDialogOpen = (val: boolean): void => {
@@ -38,20 +37,60 @@ export default function CreatePhase({
         }
     });
 
-    useEffect(() => { form.reset(); }, [existingPhase]);
-    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle]);
+    useEffect(() => { form.reset(); }, [existingPhase, form]);
+    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle, form]);
 
-    const createPhase = api.recruitmentCyclePhase.create.useMutation();
-    const updatePhase = api.recruitmentCyclePhase.update.useMutation();
-    const getPhases = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle, { enabled: false });
-    const onSubmit = async (values: z.infer<typeof phaseSchema>) => {
+    const utils = api.useContext();
+    const createPhase = api.recruitmentCyclePhase.create.useMutation({
+        onMutate: async (newPhase) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.recruitmentCyclePhase.getByCycleId.cancel();
+            const previousPhases = utils.recruitmentCyclePhase.getByCycleId.getData(recruitmentCycle);
+
+            // optimistically update phases 
+            const updatedPhases = [...(previousPhases ?? []), { ...newPhase, id: "", order: Number.MAX_SAFE_INTEGER }];
+            utils.recruitmentCyclePhase.getByCycleId.setData(
+                recruitmentCycle,
+                updatedPhases
+            );
+
+            return { previousPhases };
+        },
+        onError: (_err, _newPhase, context) => {
+            utils.recruitmentCyclePhase.getByCycleId.setData(recruitmentCycle, context?.previousPhases);
+        },
+        onSettled: () => utils.recruitmentCyclePhase.invalidate()
+    });
+    const updatePhase = api.recruitmentCyclePhase.update.useMutation({
+        onMutate: async (updatedPhase) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.recruitmentCyclePhase.getByCycleId.cancel();
+            const previousPhases = utils.recruitmentCyclePhase.getByCycleId.getData(recruitmentCycle) ?? [];
+
+            // optimistically update phases and make sure to preserve phase order
+            const updatedPhaseIndex = previousPhases.findIndex(p => p.id === updatedPhase.id);
+            const newPhase = { ...previousPhases[updatedPhaseIndex]!, ...updatedPhase };
+            const updatedPhases = [...previousPhases]
+            updatedPhases[updatedPhaseIndex] = newPhase;
+            utils.recruitmentCyclePhase.getByCycleId.setData(
+                recruitmentCycle,
+                updatedPhases
+            );
+
+            return { previousPhases };
+        },
+        onError: (_err, _newPhase, context) => {
+            utils.recruitmentCyclePhase.getByCycleId.setData(recruitmentCycle, context?.previousPhases);
+        },
+        onSettled: () => utils.recruitmentCyclePhase.invalidate()
+    });
+    const onSubmit = (values: z.infer<typeof phaseSchema>) => {
         if (existingPhase) {
-            await updatePhase.mutateAsync(values);
+            void updatePhase.mutateAsync(values);
         } else {
-            await createPhase.mutateAsync(values);
+            void createPhase.mutateAsync(values);
         }
         setOpen(false);
-        setPhases((await getPhases.refetch()).data ?? []);
         form.reset();
     };
 
@@ -66,7 +105,9 @@ export default function CreatePhase({
             </DialogTrigger>
             <DialogContent className="flex flex-col h-fit w-max">
                 <DialogHeader>
-                    <DialogTitle>Create a new recruitment cycle phase</DialogTitle>
+                    <DialogTitle>
+                        {existingPhase ? "Edit recruitment cycle phase" : "Create a new recruitment cycle phase"}
+                    </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">

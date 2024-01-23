@@ -38,10 +38,12 @@ export default function RecruitmentCycleCombobox({
     api.recruitmentCycle.getAll.useQuery(undefined, {
         onSuccess: data => setCycles(data)
     });
+    const utils = api.useContext();
 
     useEffect(() => {
         setValue(cycles?.[0]?.id ?? "");
-    }, [setValue, cycles]);
+        void utils.recruitmentCyclePhase.getByCycleId.invalidate();
+    }, [setValue, cycles, utils.recruitmentCyclePhase.getByCycleId]);
 
 
     function CreateNew({ createOption }: { createOption: boolean }) {
@@ -82,6 +84,7 @@ export default function RecruitmentCycleCombobox({
                                 value={cycle.id}
                                 onSelect={(currentValue) => {
                                     setValue(currentValue === value ? "" : currentValue);
+                                    void utils.recruitmentCyclePhase.getByCycleId.invalidate();
                                     setOpen(false);
                                 }}
                             >

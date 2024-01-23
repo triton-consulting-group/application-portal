@@ -47,12 +47,12 @@ export default function CreateNote({
             // cancel outgoing refetches that will overwrite data
             await utils.applicationNote.getByApplicationId.cancel();
             const previousNotes = utils.applicationNote.getByApplicationId.getData(applicationId) ?? [];
-            
+
             // optimistically update notes
             const user = (await getSession())?.user;
             utils.applicationNote.getByApplicationId.setData(
                 applicationId,
-                [{...newNote, authorName: user?.name ?? "", authorId: user?.id ?? "", id: ""}, ...previousNotes]
+                [{ ...newNote, authorName: user?.name ?? "", authorId: user?.id ?? "", id: "" }, ...previousNotes]
             );
 
             return { previousNotes };
@@ -67,12 +67,12 @@ export default function CreateNote({
             // cancel outgoing refetches that will overwrite data
             await utils.applicationNote.getByApplicationId.cancel();
             const previousNotes = utils.applicationNote.getByApplicationId.getData(applicationId) ?? [];
-            
+
             // optimistically update notes
             const newNote = { ...previousNotes.find(n => n.id === updatedNote.noteId)!, ...updatedNote };
             utils.applicationNote.getByApplicationId.setData(
                 applicationId,
-                [newNote, ...(previousNotes.filter(n => n.id !== updatedNote.noteId))],
+                [newNote, ...previousNotes.filter(n => n.id !== updatedNote.noteId)],
             );
 
             return { previousNotes };

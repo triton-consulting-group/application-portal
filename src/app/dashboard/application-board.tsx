@@ -1,8 +1,8 @@
 "use client";
 
 import { DndContext, type DragEndEvent, type DragOverEvent, DragOverlay, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import type { ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
-import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
+import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
+import { applicationsAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -19,10 +19,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 function SortableApplication({
     application,
-    disabled
+    disabled,
+    questions
 }: {
     application: ApplicationWithResponses,
-    disabled?: boolean
+    disabled?: boolean,
+    questions: ApplicationQuestion[]
 }) {
     const {
         attributes,
@@ -40,8 +42,6 @@ function SortableApplication({
             scaleY: 1
         } : transform),
     };
-
-    const [questions] = useAtom(applicationQuestionsAtom);
 
     return (
         <div
@@ -104,10 +104,12 @@ function SortableApplication({
 
 function PhaseCard({
     displayedApplications,
-    phase
+    phase,
+    questions,
 }: {
     displayedApplications: ApplicationWithResponses[],
-    phase: RecruitmentCyclePhase | null
+    phase: RecruitmentCyclePhase | null,
+    questions: ApplicationQuestion[],
 }) {
     const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
     const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } });
@@ -201,6 +203,7 @@ function PhaseCard({
                                     >
                                         <SortableApplication
                                             application={applications[virtualRow.index]!}
+                                            questions={questions}
                                         />
                                     </div>
                                 ))}
@@ -215,11 +218,14 @@ function PhaseCard({
 
 export default function ApplicationBoard({
     displayedApplications,
+    questions,
+    phases
 }: {
     displayedApplications: ApplicationWithResponses[],
+    questions: ApplicationQuestion[],
+    phases: RecruitmentCyclePhase[],
 }) {
     const [applications, setApplications] = useAtom(applicationsAtom);
-    const [phases] = useAtom(recruitmentCyclePhasesAtom);
     const sensors = useSensors(useSensor(PointerSensor));
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
@@ -266,13 +272,26 @@ export default function ApplicationBoard({
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
             >
-                <PhaseCard displayedApplications={displayedApplications} phase={null} />
+                <PhaseCard
+                    displayedApplications={displayedApplications}
+                    phase={null}
+                    questions={questions}
+                />
                 {phases.map(phase => (
-                    <PhaseCard key={phase.id} displayedApplications={displayedApplications} phase={phase} />
+                    <PhaseCard
+                        key={phase.id}
+                        displayedApplications={displayedApplications}
+                        phase={phase}
+                        questions={questions}
+                    />
                 ))}
                 <DragOverlay>
                     {active ? (
-                        <SortableApplication application={active} disabled />
+                        <SortableApplication
+                            application={active}
+                            disabled
+                            questions={questions}
+                        />
                     ) : null}
                 </DragOverlay>
             </DndContext>

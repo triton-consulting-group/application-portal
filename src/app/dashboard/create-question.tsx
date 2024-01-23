@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "src/components/ui/dialog";
-import { applicationQuestionsAtom, selectedRecruitmentCycleAtom } from "./atoms";
+import { selectedRecruitmentCycleAtom } from "./atoms";
 import { Button } from "~/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,7 +40,6 @@ export default function CreateQuestion({
 }) {
     const [open, setOpen] = useState<boolean>(false);
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
-    const [, setQuestions] = useAtom(applicationQuestionsAtom);
 
     const questionTypes: { value: FieldType, name: string }[] = Object.values(FieldType).map(type => ({
         value: type,
@@ -76,17 +75,70 @@ export default function CreateQuestion({
     }
 
     const dummyForm = useForm<Record<string, string>>({ defaultValues: { "test": "" } });
-    const createQuestion = api.applicationQuestion.create.useMutation();
-    const updateQuestion = api.applicationQuestion.update.useMutation();
-    const getQuestions = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle, { enabled: false });
+
+    const utils = api.useContext();
+    const createQuestion = api.applicationQuestion.create.useMutation({
+        onMutate: async (newQuestion) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.applicationQuestion.getByCycle.cancel();
+            const previousQuestions = utils.applicationQuestion.getByCycle.getData(recruitmentCycle);
+
+            // optimistically update questions, adding the new question to the end
+            const updatedQuestions = [
+                ...(previousQuestions ?? []),
+                {
+                    description: null,
+                    placeholder: null,
+                    options: null,
+                    maxLength: null,
+                    minLength: null,
+                    ...newQuestion,
+                    id: "",
+                    order: Number.MAX_SAFE_INTEGER
+                }
+            ];
+            utils.applicationQuestion.getByCycle.setData(
+                recruitmentCycle,
+                updatedQuestions
+            );
+
+            return { previousQuestions };
+        },
+        onError: (_err, _newQuestion, context) => {
+            utils.applicationQuestion.getByCycle.setData(recruitmentCycle, context?.previousQuestions);
+        },
+        onSettled: () => utils.applicationQuestion.invalidate()
+    });
+    const updateQuestion = api.applicationQuestion.update.useMutation({
+        onMutate: async (updatedQuestion) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.applicationQuestion.getByCycle.cancel();
+            const previousQuestions = utils.applicationQuestion.getByCycle.getData(recruitmentCycle) ?? [];
+
+            // optimistically update questions and preserve order
+            const updatedQuestionIndex = previousQuestions.findIndex(q => q.id === updatedQuestion.id);
+            const newQuestion = { ...previousQuestions[updatedQuestionIndex]!, ...updatedQuestion };
+            const updatedQuestions = [...previousQuestions]
+            updatedQuestions[updatedQuestionIndex] = newQuestion;
+            utils.applicationQuestion.getByCycle.setData(
+                recruitmentCycle,
+                updatedQuestions
+            );
+
+            return { previousQuestions };
+        },
+        onError: (_err, _newQuestion, context) => {
+            utils.applicationQuestion.getByCycle.setData(recruitmentCycle, context?.previousQuestions);
+        },
+        onSettled: () => utils.applicationQuestion.invalidate()
+    });
     const onSubmit = async (values: z.infer<typeof questionSchema>) => {
         if (existingQuestion) {
-            await updateQuestion.mutateAsync(values);
+            void updateQuestion.mutateAsync(values);
         } else {
-            await createQuestion.mutateAsync(values);
+            void createQuestion.mutateAsync(values);
         }
         setOpen(false);
-        setQuestions((await getQuestions.refetch()).data ?? []);
         setOption("");
         form.reset();
     };

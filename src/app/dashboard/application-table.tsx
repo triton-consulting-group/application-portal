@@ -2,8 +2,8 @@
 
 import { useAtom } from "jotai";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
-import { applicationQuestionsAtom, applicationsAtom, recruitmentCyclePhasesAtom } from "./atoms";
-import type { ApplicationWithResponses } from "../types";
+import { applicationsAtom } from "./atoms";
+import type { ApplicationQuestion, ApplicationWithResponses, RecruitmentCyclePhase } from "../types";
 import { api } from "~/trpc/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
@@ -14,12 +14,14 @@ import { FieldType } from "~/server/db/types";
 import FileViewerDialog from "~/components/ui/file-viewer-dialog";
 
 export default function ApplicationTable({
-    displayedApplications
+    displayedApplications,
+    questions,
+    phases
 }: {
-    displayedApplications: ApplicationWithResponses[]
+    displayedApplications: ApplicationWithResponses[],
+    questions: ApplicationQuestion[],
+    phases: RecruitmentCyclePhase[]
 }) {
-    const [questions] = useAtom(applicationQuestionsAtom);
-    const [phases] = useAtom(recruitmentCyclePhasesAtom);
     const [applications, setApplications] = useAtom(applicationsAtom);
 
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation();
