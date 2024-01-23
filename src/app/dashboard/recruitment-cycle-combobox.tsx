@@ -14,7 +14,7 @@ import {
     PopoverTrigger,
 } from "src/components/ui/popover";
 import { cn } from "src/lib/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "src/components/ui/button";
 import CreateRecruitmentCycle from "./create-recruitment-cycle";
 import { useHydrateAtoms } from 'jotai/utils';
@@ -24,13 +24,20 @@ import { type RecruitmentCycle } from "../types";
 import { api } from "~/trpc/react";
 
 export default function RecruitmentCycleCombobox({
-    createOption, recruitmentCycles, className
+    createOption,
+    recruitmentCycles,
+    className,
+    selectedCycle,
 }: {
     createOption: boolean,
     recruitmentCycles: RecruitmentCycle[],
-    className: string
+    className: string,
+    selectedCycle: string
 }) {
-    useHydrateAtoms([[recruitmentCyclesAtom, recruitmentCycles]]);
+    useHydrateAtoms([
+        [recruitmentCyclesAtom, recruitmentCycles],
+        [selectedRecruitmentCycleAtom, selectedCycle]
+    ]);
     const [cycles, setCycles] = useAtom(recruitmentCyclesAtom);
     const [open, setOpen] = useState(false);
     const [value, setValue] = useAtom(selectedRecruitmentCycleAtom);
@@ -38,13 +45,6 @@ export default function RecruitmentCycleCombobox({
     api.recruitmentCycle.getAll.useQuery(undefined, {
         onSuccess: data => setCycles(data)
     });
-    const utils = api.useContext();
-
-    useEffect(() => {
-        setValue(cycles?.[0]?.id ?? "");
-        void utils.recruitmentCyclePhase.getByCycleId.invalidate();
-    }, [setValue, cycles, utils.recruitmentCyclePhase.getByCycleId]);
-
 
     function CreateNew({ createOption }: { createOption: boolean }) {
         if (!createOption) {
@@ -83,9 +83,7 @@ export default function RecruitmentCycleCombobox({
                                 key={cycle.id}
                                 value={cycle.id}
                                 onSelect={(currentValue) => {
-                                    console.log(currentValue)
                                     setValue(currentValue === value ? "" : currentValue);
-                                    void utils.recruitmentCyclePhase.getByCycleId.invalidate();
                                     setOpen(false);
                                 }}
                             >

@@ -28,6 +28,7 @@ export default async function Dashboard() {
                 className="mt-6 mb-2"
                 createOption={session.user.role === Role.ADMIN}
                 recruitmentCycles={cycles}
+                selectedCycle={cycles?.[0]?.id ?? ""}
             ></RecruitmentCycleCombobox>
             <Tabs defaultValue="applications" className="h-full">
                 <TabsList>
