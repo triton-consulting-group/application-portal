@@ -70,7 +70,7 @@ export default function CreatePhase({
             // optimistically update phases and make sure to preserve phase order
             const updatedPhaseIndex = previousPhases.findIndex(p => p.id === updatedPhase.id);
             const newPhase = { ...previousPhases[updatedPhaseIndex]!, ...updatedPhase };
-            const updatedPhases = [...previousPhases]
+            const updatedPhases = [...previousPhases];
             updatedPhases[updatedPhaseIndex] = newPhase;
             utils.recruitmentCyclePhase.getByCycleId.setData(
                 recruitmentCycle,

@@ -52,8 +52,8 @@ export default function CreateQuestion({
         }
     });
 
-    useEffect(() => { form.reset(); }, [existingQuestion]);
-    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle]);
+    useEffect(() => { form.reset(); }, [existingQuestion, form]);
+    useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle, form]);
 
     const type = form.watch("type");
     const options = form.watch("options");
@@ -118,7 +118,7 @@ export default function CreateQuestion({
             // optimistically update questions and preserve order
             const updatedQuestionIndex = previousQuestions.findIndex(q => q.id === updatedQuestion.id);
             const newQuestion = { ...previousQuestions[updatedQuestionIndex]!, ...updatedQuestion };
-            const updatedQuestions = [...previousQuestions]
+            const updatedQuestions = [...previousQuestions];
             updatedQuestions[updatedQuestionIndex] = newQuestion;
             utils.applicationQuestion.getByCycle.setData(
                 recruitmentCycle,
@@ -132,7 +132,7 @@ export default function CreateQuestion({
         },
         onSettled: () => utils.applicationQuestion.invalidate()
     });
-    const onSubmit = async (values: z.infer<typeof questionSchema>) => {
+    const onSubmit = (values: z.infer<typeof questionSchema>) => {
         if (existingQuestion) {
             void updateQuestion.mutateAsync(values);
         } else {

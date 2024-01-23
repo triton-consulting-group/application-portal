@@ -11,7 +11,7 @@ import CreatePhase from "./create-phase";
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { RecruitmentCyclePhase } from "../types";
+import type { RecruitmentCyclePhase } from "../types";
 
 export default function PhaseCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);

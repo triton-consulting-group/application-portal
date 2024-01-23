@@ -18,14 +18,14 @@ import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } f
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { PreviewApplication } from "./preview-application";
-import { ApplicationQuestion } from "../types";
+import type { ApplicationQuestion } from "../types";
 
 export default function QuestionCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [editing, setEditing] = React.useState<boolean>(false);
 
     const utils = api.useContext();
-    const { data: questions, isLoading: loading } = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle);
+    const { data: questions } = api.applicationQuestion.getByCycle.useQuery(recruitmentCycle);
     const deleteQuestionMutation = api.applicationQuestion.delete.useMutation({
         onMutate: async (deletedId) => {
             // cancel outgoing refetches that will overwrite data

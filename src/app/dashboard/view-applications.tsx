@@ -59,7 +59,7 @@ export default function ViewApplications() {
             }));
         setApplications(applicationsWithResponses);
         setDisplayedApplications(applicationsWithResponses);
-    }, [cycleId, applicationsData, phasesData, responsesData, questionsData]);
+    }, [cycleId, applicationsData, phasesData, responsesData, questionsData, setApplications]);
 
     const [filters, setFilters] = useState<Filter[]>([]);
     const createFilterForm = useForm<Filter>();
@@ -266,14 +266,14 @@ export default function ViewApplications() {
                         </div>
                     </div>
                     <TabsContent value="table">
-                        <ApplicationTable 
+                        <ApplicationTable
                             displayedApplications={displayedApplications}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                         />
                     </TabsContent>
                     <TabsContent value="board">
-                        <ApplicationBoard 
+                        <ApplicationBoard
                             displayedApplications={displayedApplications}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}

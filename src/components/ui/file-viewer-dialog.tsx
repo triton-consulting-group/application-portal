@@ -28,7 +28,7 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
             setLoading(false);
         };
         open && void getUrl();
-    }, [src, open]);
+    }, [src, open, getFileValueQuery]);
 
     return (
         <>
