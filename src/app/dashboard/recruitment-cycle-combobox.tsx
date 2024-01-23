@@ -83,6 +83,7 @@ export default function RecruitmentCycleCombobox({
                                 key={cycle.id}
                                 value={cycle.id}
                                 onSelect={(currentValue) => {
+                                    console.log(currentValue)
                                     setValue(currentValue === value ? "" : currentValue);
                                     void utils.recruitmentCyclePhase.getByCycleId.invalidate();
                                     setOpen(false);

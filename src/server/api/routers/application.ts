@@ -5,6 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getValidator } from "~/lib/validate-question";
 import { SESClient, SendTemplatedEmailCommand } from "@aws-sdk/client-ses";
+import { ApplicationWithResponses } from "~/app/types";
 
 const client = new SESClient();
 const EMAIL_TEMPLATE_NAME = "confirmation_template";
@@ -24,14 +25,53 @@ export const applicationRouter = createTRPCRouter({
                 );
             return application;
         }),
-    getApplicationsByCycleId: memberProcedure
+    getSubmittedApplicationsWithResponsesByCycleId: memberProcedure
         .input(z.string())
-        .query(({ ctx, input }) => {
-            return ctx.db
-                .select()
-                .from(applications)
-                .where(eq(applications.cycleId, input))
-                .leftJoin(users, eq(users.id, applications.userId));
+        .query(async ({ ctx, input }) => {
+            const [questions, applicationsWithUser, responses] = await Promise.all([
+                ctx.db
+                    .select()
+                    .from(applicationQuestions)
+                    .where(eq(applicationQuestions.cycleId, input))
+                    .orderBy(applicationQuestions.order),
+                ctx.db
+                    .select()
+                    .from(applications)
+                    .where(and(
+                        eq(applications.cycleId, input),
+                        eq(applications.submitted, true)
+                    ))
+                    .leftJoin(users, eq(users.id, applications.userId))
+                    .leftJoin(recruitmentCyclePhases, eq(applications.phaseId, recruitmentCyclePhases.id)),
+                ctx.db
+                    .select({
+                        id: applicationResponses.id,
+                        questionId: applicationResponses.questionId,
+                        value: applicationResponses.value,
+                        applicationId: applicationResponses.applicationId
+                    })
+                    .from(applicationResponses)
+                    .leftJoin(applications, and(
+                        eq(applications.id, applicationResponses.applicationId),
+                        eq(applications.cycleId, input)
+                    ))
+            ]);
+
+            return applicationsWithUser.map((app): ApplicationWithResponses => ({
+                ...app.application,
+                email: app?.user?.email ?? "",
+                name: app?.user?.name ?? "",
+                phase: app?.recruitmentCyclePhase,
+                responses: questions.map(q =>
+                    responses.find(r => r.applicationId === app.application.id && r.questionId === q.id) ??
+                    {
+                        value: "",
+                        questionId: q.id,
+                        applicationId: app.application.id,
+                        id: app.application.id + q.id
+                    }
+                )
+            }));
         }),
     create: applicantProcedure
         .mutation(async ({ ctx }) => {

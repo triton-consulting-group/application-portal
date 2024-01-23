@@ -26,41 +26,17 @@ enum FilterType {
 };
 type Filter = { questionId: string, value: string, type: FilterType };
 
+const filterApplicationsByNameOrEmail = (
+    applications: ApplicationWithResponses[],
+    field: keyof Pick<ApplicationWithResponses, "name" | "email">,
+    value: string
+): ApplicationWithResponses[] => {
+    return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase())) ?? [];
+};
+
 export default function ViewApplications() {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
-    const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
-    const [displayedApplications, setDisplayedApplications] = useState<ApplicationWithResponses[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>("");
-
-    const { data: questionsData, isLoading: questionsLoading } = api.applicationQuestion.getByCycle.useQuery(cycleId);
-    const { data: applicationsData, dataUpdatedAt, isLoading: applicationsLoading } = api.application.getApplicationsByCycleId.useQuery(cycleId);
-    const { data: responsesData, isLoading: responsesLoading } = api.applicationResponse.getResponsesByCycleId.useQuery(cycleId);
-    const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
-
-    // i have no idea why, but this doesn't fire on applicationsData updating even though 
-    // the reference should change because it is a new array being created in setApplicationPhaseIdMutation
-    useEffect(() => {
-        if (!applicationsData || !questionsData || !responsesData || !phasesData) return;
-        const applicationsWithResponses = applicationsData
-            .filter(app => app.application.submitted)
-            .map((app): ApplicationWithResponses => ({
-                ...app.application,
-                email: app?.user?.email ?? "",
-                name: app?.user?.name ?? "",
-                phase: phasesData.find(p => p.id === app.application.phaseId),
-                responses: questionsData.map(q =>
-                    responsesData.find(r => r.applicationId === app.application.id && r.questionId === q.id) ??
-                    {
-                        value: "",
-                        questionId: q.id,
-                        applicationId: app.application.id,
-                        id: app.application.id + q.id
-                    }
-                )
-            }));
-        setApplications(applicationsWithResponses);
-        setDisplayedApplications(applicationsWithResponses);
-    }, [cycleId, applicationsData, phasesData, responsesData, questionsData, setApplications, dataUpdatedAt]);
 
     const [filters, setFilters] = useState<Filter[]>([]);
     const createFilterForm = useForm<Filter>();
@@ -71,15 +47,10 @@ export default function ViewApplications() {
     };
     const removeFilter = (filter: Filter) => setFilters(filters.filter(f => f !== filter));
 
-    useEffect(() => {
-        const filterApplicationsByNameOrEmail = (
-            field: keyof Pick<ApplicationWithResponses, "name" | "email">, value: string
-        ): ApplicationWithResponses[] => {
-            return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase()));
-        };
-
-        setDisplayedApplications(
-            filterApplicationsByNameOrEmail("name", searchQuery)
+    const { data: questionsData, isLoading: questionsLoading } = api.applicationQuestion.getByCycle.useQuery(cycleId);
+    const { data: applicationsData, isLoading: applicationsLoading } = api.application.getSubmittedApplicationsWithResponsesByCycleId.useQuery(cycleId, {
+        select: data => {
+            return filterApplicationsByNameOrEmail(data, "name", searchQuery)
                 .filter(a =>
                     filters.every(f => {
                         const response = a.responses.find(r => r.questionId === f.questionId);
@@ -89,11 +60,12 @@ export default function ViewApplications() {
                         if (f.type === FilterType.CONTAIN) return response.value.trim().toLowerCase().includes(f.value.toLowerCase());
                     })
                 )
-        );
-    }, [filters, applications, searchQuery]);
+        }
+    });
+    const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
 
-    const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
-    const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
+    const copyEmails = () => navigator.clipboard.writeText(applicationsData?.map(a => a.email).join(",") ?? "");
+    const copyNames = () => navigator.clipboard.writeText(applicationsData?.map(a => a.name).join(",") ?? "");
     const exportApplications = () => {
         if (!questionsData) return;
 
@@ -104,12 +76,12 @@ export default function ViewApplications() {
         const blob = new Blob([
             [
                 ["Name", "Email", "Phase", questionsData.map(q => sanitizeString(q.displayName))].join(","),
-                ...displayedApplications.map(a => [
+                ...applicationsData?.map(a => [
                     sanitizeString(a.name ?? ""),
                     sanitizeString(a.email),
                     sanitizeString(a.phase?.displayName ?? ""),
                     ...a.responses.map(r => sanitizeString(r.value))
-                ].join(","))
+                ].join(",")) ?? ""
             ].join("\n")
         ], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
@@ -125,7 +97,7 @@ export default function ViewApplications() {
 
     return (
         <>
-            {questionsLoading || applicationsLoading || phasesLoading || responsesLoading ? (
+            {questionsLoading || applicationsLoading || phasesLoading ? (
                 <div className="flex justify-center">
                     <Loader2 className="animate-spin" />
                 </div>
@@ -268,14 +240,14 @@ export default function ViewApplications() {
                     </div>
                     <TabsContent value="table">
                         <ApplicationTable
-                            displayedApplications={displayedApplications}
+                            displayedApplications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                         />
                     </TabsContent>
                     <TabsContent value="board">
                         <ApplicationBoard
-                            displayedApplications={displayedApplications}
+                            displayedApplications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                         />

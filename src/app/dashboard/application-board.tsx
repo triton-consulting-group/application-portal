@@ -232,26 +232,26 @@ export default function ApplicationBoard({
     const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
         onMutate: async (update) => {
             // cancel outgoing refetches that will overwrite data
-            await utils.application.getApplicationsByCycleId.invalidate(cycleId); 
-            const previousApplications = utils.application.getApplicationsByCycleId.getData(cycleId)!;
-            
+            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.cancel(cycleId);
+            const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
+
             // optimistically update application phase
-            const updatedApplication = { ...previousApplications.find(a => a.application.id === update.applicationId)! };
-            updatedApplication.application.phaseId = update.phaseId;
-            utils.application.getApplicationsByCycleId.setData(
+            const updatedApplication = { ...previousApplications.find(a => a.id === update.applicationId)! };
+            updatedApplication.phaseId = update.phaseId;
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
                 cycleId,
                 [
                     updatedApplication,
-                    ...previousApplications.filter(a => a.application.id !== update.applicationId)
+                    ...previousApplications.filter(a => a.id !== update.applicationId)
                 ]
             );
 
-            return {previousApplications};
+            return { previousApplications };
         },
         onError: (_err, _update, context) => {
-            utils.application.getApplicationsByCycleId.setData(cycleId, context?.previousApplications);
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(cycleId, context?.previousApplications);
         },
-        onSettled: () => utils.application.getApplicationsByCycleId.invalidate(cycleId)
+        onSettled: () => utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId)
     });
 
     const handleDragEnd = ({ active }: { active: DragEndEvent['active'] }) => {
@@ -277,17 +277,18 @@ export default function ApplicationBoard({
         // over.id can be an app or phase id, this finds the phase no matter what
         const overApp = displayedApplications.find(a => a.id === over.id);
         const phase = overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id);
-        
-        const applicationQueryData = utils.application.getApplicationsByCycleId.getData(cycleId)!;
-        const newApp = applicationQueryData.find(a => a.application.id === active.id);
+
+        const applicationQueryData = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
+        const newApp = applicationQueryData.find(a => a.id === active.id);
         if (!newApp) throw new Error("Dragged application not found");
-        newApp.application.phaseId = phase?.id ?? null;
-        utils.application.getApplicationsByCycleId.setData(
+        newApp.phaseId = phase?.id ?? null;
+        newApp.phase = phase ?? null;
+        utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
             cycleId,
-            [
+            structuredClone([
                 newApp,
-                ...applicationQueryData.filter(a => a.application.id !== active.id)
-            ]
+                ...applicationQueryData.filter(a => a.id !== active.id)
+            ])
         );
     };
 
