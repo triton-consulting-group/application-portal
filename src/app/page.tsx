@@ -9,6 +9,17 @@ import { Button } from "~/components/ui/button";
 import type { Application, RecruitmentCycle } from "./types";
 import RecruitmentCycleText from "./recruitment-cycle-text";
 
+/**
+ * The action a user can take depending on their role and whether there is an active cycle
+ * Member or Admin -> Dashboard
+ * Applicant -> 
+ *  Active Recruitment Cycle -> Start / Continue Application
+ *  No active cycle -> Follow on Instagram
+ *
+ * @param role the logged in user's role
+ * @param application the logged in user's application for the active cycle
+ * @param activeCycle the current active recruitment cycle
+ */
 function ActionButton({
     role,
     application,
@@ -53,6 +64,9 @@ function ActionButton({
     }
 }
 
+/**
+ * The home page for the application portal
+ */
 export default async function Home() {
     const [session, activeCycle] = await Promise.all([
         getServerAuthSession(),
