@@ -5,6 +5,9 @@ import { api } from "~/trpc/server";
 import { ApplicationForm } from "./application-form";
 import { type Application } from "../types";
 
+/**
+ * /apply page. Fetches data and displays the ApplicationForm component
+ */
 export default async function Apply() {
     // TODO: Replace permanentRedirect with redirect 
     // https://github.com/vercel/next.js/issues/59800

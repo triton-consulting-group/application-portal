@@ -5,6 +5,10 @@ import { Role } from "~/server/db/types";
 import { api } from "~/trpc/server";
 import Confetti from "./confetti";
 
+/**
+ * Confirmation screen for applicants after they submit their application
+ * Redirects applicants to the /apply page if they haven't submitted their application yet
+ */
 export default async function Confirmation() {
     // TODO: Replace permanentRedirect with redirect 
     // https://github.com/vercel/next.js/issues/59800
