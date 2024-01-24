@@ -1,7 +1,15 @@
 import { type ZodSchema, z } from "zod";
 import { type ApplicationQuestion } from "~/app/types";
 import { FieldType } from "~/server/db/types";
-
+/**
+ * Creates the appropriate Zod validator for an ApplicationQuestion
+ *
+ * @param question the question to create a validator for
+ * @param server whether the validator is being used on the server
+ * This changes the validation for file inputs because on the client, file inputs
+ * should be File objects. However, on the server, File uploads are strings representing
+ * the s3 key
+ */
 export const getValidator = (question: ApplicationQuestion, server?: boolean): ZodSchema => {
     let schema: ZodSchema;
     switch (question.type) {

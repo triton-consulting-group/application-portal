@@ -3,6 +3,9 @@
 import Realistic from "react-canvas-confetti/dist/presets/realistic";
 import type { TConductorInstance } from "react-canvas-confetti/dist/types";
 
+/**
+ * Cute confetti effect for the application confirmation screen
+ */
 export default function Confetti() {
     const onInit = ({
         conductor

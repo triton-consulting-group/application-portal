@@ -8,6 +8,10 @@ import QuestionCard from "./question-card";
 import PhaseCard from "./phase-card";
 import ViewApplications from "./view-applications";
 
+/**
+ * The dashboard page meant for members and admins to manage applications and 
+ * all things TCG
+ */
 export default async function Dashboard() {
     // TODO: Replace permanentRedirect with redirect 
     // https://github.com/vercel/next.js/issues/59800

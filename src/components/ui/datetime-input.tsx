@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, { type ChangeEvent } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
@@ -9,12 +8,20 @@ import { format } from "date-fns";
 import { Input } from "./input";
 import { Label } from "./label";
 
+/**
+ * Modified date time picker from shadcn
+ * Updated to allow for a specific time to be selected 
+ *
+ * @param onChange the function to run on change
+ * @param value the date value in the input. 
+ * @param afterDate only allow dates after afterDate to be selected
+ */
 export default function DateTimeInput({
     onChange,
     value,
     afterDate
 }: {
-    onChange: (...event: any) => void,
+    onChange: (date: Date | undefined) => void,
     value: Date,
     afterDate: Date
 }) {

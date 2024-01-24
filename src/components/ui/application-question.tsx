@@ -10,6 +10,14 @@ import { Asterisk } from "lucide-react";
 import { type ApplicationQuestion } from "~/app/types";
 import FileViewerDialog from "./file-viewer-dialog";
 
+/**
+ * File upload input 
+ *
+ * @param question the ApplicationQuestion to display
+ * @param field the field passed from the form control
+ * @param disabled whether the field is disabled. when disabled the input doesn't show up and
+ * only the file name appears
+ */
 function FileUploadQuestionContent({
     question,
     field,
@@ -54,6 +62,13 @@ function FileUploadQuestionContent({
     );
 }
 
+/**
+ * The actual input that will be used depending on the ApplicationQuestion type
+ *
+ * @param question the ApplicationQuestion to display
+ * @param field the field from the form control
+ * @param disabled whether the field is disabled
+ */
 function QuestionContent({
     question,
     field,
@@ -175,6 +190,14 @@ function QuestionContent({
     }
 }
 
+/**
+ * Displays an application question with the appropriate semantic input and styles
+ * Requires a form control 
+ *
+ * @param question the question to display
+ * @param control the react-hook-form form control
+ * @param disabled whether the input is disabled
+ */
 export function ApplicationQuestion({
     question,
     control,

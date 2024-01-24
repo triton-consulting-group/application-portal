@@ -19,8 +19,17 @@ import Loading from "../loading";
 
 const insertResponseSchema = createInsertSchema(applicationResponses);
 type ApplicationResponseInsert = z.infer<typeof insertResponseSchema>;
+// Debounce interval for how often the application should save
 const UPDATE_INTERVAL = 1000;
 
+/**
+ * The application form that displays a user's in-progress or submitted application
+ *
+ * @param questions the application questions
+ * @param responses the user's responses to the application questions
+ * @param application the user's application object
+ * @param cycle the active recruitment cycle
+ */
 export function ApplicationForm({
     questions,
     responses,
@@ -32,14 +41,25 @@ export function ApplicationForm({
     application: Application,
     cycle: RecruitmentCycle
 }) {
-    const [fileUploadQueue, setFileUploadQueue] = useState<string[]>([]);
+    // the queue of files being uploaded in any type="file" inputs
+    const [fileUploadQueue, setFileUploadQueue] = useState<ApplicationQuestionType["id"][]>([]);
+    // if the application has been submitted, the form is view-only and displays
+    // slightly differently
     const [submitted, setSubmitted] = useState<boolean>(application.submitted);
+    // whether the application is currently being submitted
+    // if the application is currently being submitted, the page will resemble 
+    // the loading.tsx page so it can seamlessly transition into the confirmation page
     const [loading, setLoading] = useState<boolean>(false);
+
     const submitApplicationMutation = api.application.submit.useMutation();
     const router = useRouter();
+    /**
+     * Submits the user's application and redirects them to the confirmation page
+     */
     const submitApplication = async () => {
         setSubmitted(true);
         setLoading(true);
+        // wait for file upload queue to finish before attempting to submit application
         while (Object.keys(updateQueue.current).length > 0) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -48,6 +68,11 @@ export function ApplicationForm({
             await submitApplicationMutation.mutateAsync(application.id);
             router.push("/apply/confirmation");
         } catch (e) {
+            // this error will normally occur when a new question was added in between 
+            // the time they opened the page and when they submit.
+            // TODO: better error handling, e.g. if question was added, refresh the page
+            // to fetch the new question or redirect to different screen if they attempted
+            // to submit past the deadline
             toast("An error occured while submitting your application", {
                 description:
                     "Please refresh the page and try again in a few minutes. " +
@@ -85,7 +110,16 @@ export function ApplicationForm({
     const createOrUpdateResponseMutation = api.applicationResponse.createOrUpdate.useMutation();
     const getPresignedUploadMutation = api.applicationResponse.getS3UploadUrl.useMutation();
 
+    /**
+     * Triggers whenever a question response gets updated. 
+     * Commits the new updates to the backend
+     *
+     * TODO: possibly replace this with react-query functionality altogether
+     */
     useEffect(() => {
+        /**
+         * If a file input changed, upload the new file to s3
+         */
         const uploadFile = async (questionId: string, applicationId: string, file: File, responseId: string | undefined) => {
             setFileUploadQueue([...fileUploadQueue, questionId]);
             const { url: presignedUrl, key: fileName } = await getPresignedUploadMutation.mutateAsync(file.name);
@@ -99,6 +133,8 @@ export function ApplicationForm({
             setFileUploadQueue(fileUploadQueue.filter(k => k !== questionId));
         };
 
+        // put all the changed form fields into the upload queue (unless it is a file)
+        // file uploads get handled outside the normal update queue
         for (const questionId of Object.keys(formWatch)) {
             if (formWatch[questionId] !== prevSavedForm.current[questionId as keyof typeof defaultValues]) {
                 const response = responses.find(r => r.questionId === questionId);
@@ -118,7 +154,9 @@ export function ApplicationForm({
             }
         }
 
+        // reset the timeout for updating responses
         clearTimeout(debounceTimer.current);
+        // commit all the updates in the update queue
         debounceTimer.current = setTimeout(() => {
             void (() => {
                 for (const key in updateQueue.current) {

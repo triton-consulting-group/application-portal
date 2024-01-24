@@ -27,6 +27,17 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 
 const questionSchema = createInsertSchema(applicationQuestions, { options: z.string().array() });
 
+
+/**
+ * Dialog for creating an application question for the currently selected recruitment cycle
+ * Practically the same as CreatePhase
+ *
+ * @param existingPhase specify this to make the dialog edit a pre-existing question instead of making
+ * a new one
+ * @param children the node children to use as a DialogTrigger
+ * @param asChild whether children are specified to use as a DialogTrigger
+ * @param disabled whether the button should be disabled
+ */
 export default function CreateQuestion({
     existingQuestion,
     children,

@@ -20,6 +20,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { PreviewApplication } from "./preview-application";
 import type { ApplicationQuestion } from "../types";
 
+/**
+ * Card that displays a recruitment cycle's questions.
+ * Allows for questions to be reordered, deleted, created, edited, and previewed
+ * Uses dnd-kit for question reordering
+ *
+ * This component and PhaseCard are practically the same
+ */
 export default function QuestionCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [editing, setEditing] = React.useState<boolean>(false);
@@ -87,7 +94,7 @@ export default function QuestionCard() {
                     questions[activeIdx]!
                 );
             }
-            void reorderQuestionMutation.mutateAsync(newQuestions.map(q => q.id ?? ""));
+            void reorderQuestionMutation.mutateAsync(newQuestions.map(q => q.id));
         }
     };
 

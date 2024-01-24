@@ -7,6 +7,10 @@ export interface FlickerButtonProps extends ButtonProps {
     duration: number
 }
 
+/**
+ * Button that when pressed, changes its content to flickerContent for duration, then changes back
+ * to the defaultContent
+ */
 const FlickerButton = forwardRef<HTMLButtonElement, FlickerButtonProps>(function FlickerButton({
     onClick,
     defaultContent,

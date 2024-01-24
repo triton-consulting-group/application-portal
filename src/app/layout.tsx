@@ -21,6 +21,9 @@ export const metadata = {
     icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
+/**
+ * Root layout for the application that wraps the app with all necessary providers
+ */
 export default function RootLayout({
     children,
 }: {

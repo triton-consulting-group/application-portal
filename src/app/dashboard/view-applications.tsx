@@ -34,13 +34,16 @@ const filterApplicationsByNameOrEmail = (
     return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase())) ?? [];
 };
 
+/**
+ * Parent component to ApplicationTable and ApplicationBoard. Handles the mutation,
+ * data fetching, and filtering of applications 
+ */
 export default function ViewApplications() {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
-    const [searchQuery, setSearchQuery] = useState<string>("");
 
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const [filters, setFilters] = useState<Filter[]>([]);
     const createFilterForm = useForm<Filter>();
-
     const onFilterFormSave = () => {
         setFilters([createFilterForm.getValues(), ...filters]);
         createFilterForm.reset();
@@ -62,6 +65,33 @@ export default function ViewApplications() {
                 )
     });
     const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
+
+    const utils = api.useContext();
+    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
+        onMutate: async (update) => {
+            // cancel outgoing refetches that will overwrite data
+            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.cancel(cycleId);
+            const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
+
+            // optimistically update application phase
+            const updatedApplications = [...previousApplications];
+            const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === update.applicationId);
+            updatedApplications[updatedApplicationIndex] = {
+                ...previousApplications.find(a => a.id === update.applicationId)!,
+                phaseId: update.phaseId
+            };
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
+                cycleId,
+                updatedApplications
+            );
+
+            return { previousApplications };
+        },
+        onError: (_err, _update, context) => {
+            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(cycleId, context?.previousApplications);
+        },
+        onSettled: () => utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId)
+    });
 
     const copyEmails = () => navigator.clipboard.writeText(applicationsData?.map(a => a.email).join(",") ?? "");
     const copyNames = () => navigator.clipboard.writeText(applicationsData?.map(a => a.name).join(",") ?? "");
@@ -242,13 +272,15 @@ export default function ViewApplications() {
                             displayedApplications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
+                            setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
                         />
                     </TabsContent>
                     <TabsContent value="board">
                         <ApplicationBoard
-                            displayedApplications={applicationsData!}
+                            applications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
+                            setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
                         />
                     </TabsContent>
                 </Tabs>
