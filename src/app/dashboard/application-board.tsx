@@ -219,42 +219,19 @@ function PhaseCard({
 export default function ApplicationBoard({
     displayedApplications,
     questions,
-    phases
+    phases,
+    setApplicationPhaseIdMutation
 }: {
     displayedApplications: ApplicationWithResponses[],
     questions: ApplicationQuestion[],
     phases: RecruitmentCyclePhase[],
+    setApplicationPhaseIdMutation: ReturnType<typeof api.application.updatePhase.useMutation>
 }) {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
     const sensors = useSensors(useSensor(PointerSensor));
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
     const utils = api.useContext();
-    const setApplicationPhaseIdMutation = api.application.updatePhase.useMutation({
-        onMutate: async (update) => {
-            // cancel outgoing refetches that will overwrite data
-            await utils.application.getSubmittedApplicationsWithResponsesByCycleId.cancel(cycleId);
-            const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
-
-            // optimistically update application phase
-            const updatedApplications = [...previousApplications];
-            const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === update.applicationId);
-            updatedApplications[updatedApplicationIndex] = {
-                ...previousApplications.find(a => a.id === update.applicationId)!,
-                phaseId: update.phaseId
-            };
-            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(
-                cycleId,
-                updatedApplications
-            );
-
-            return { previousApplications };
-        },
-        onError: (_err, _update, context) => {
-            utils.application.getSubmittedApplicationsWithResponsesByCycleId.setData(cycleId, context?.previousApplications);
-        },
-        onSettled: () => utils.application.getSubmittedApplicationsWithResponsesByCycleId.invalidate(cycleId)
-    });
-
+    
     const handleDragEnd = ({ active }: { active: DragEndEvent['active'] }) => {
         setActive(null);
         // handle drag over already set the phase id, so now just commit the change 
