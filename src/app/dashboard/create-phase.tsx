@@ -14,6 +14,17 @@ import { api } from "~/trpc/react";
 
 const phaseSchema = createInsertSchema(recruitmentCyclePhases);
 
+
+/**
+ * Dialog for creating a recruitment cycle phase for the currently selected recruitment cycle
+ * Practically the same as CreateQuestion
+ *
+ * @param existingPhase specify this to make the dialog edit a pre-existing phase instead of making
+ * a new one
+ * @param children the node children to use as a DialogTrigger
+ * @param asChild whether children are specified to use as a DialogTrigger
+ * @param disabled whether the button should be disabled
+ */
 export default function CreatePhase({
     existingPhase,
     children,
@@ -37,6 +48,7 @@ export default function CreatePhase({
         }
     });
 
+    // reset the form to process any changes to the recruitmentCycle or existing phase
     useEffect(() => { form.reset(); }, [existingPhase, form]);
     useEffect(() => { form.setValue("cycleId", recruitmentCycle); }, [recruitmentCycle, form]);
 

@@ -23,6 +23,15 @@ import { useAtom } from "jotai";
 import { type RecruitmentCycle } from "../types";
 import { api } from "~/trpc/react";
 
+/**
+ * Combobox for displaying all the recruitment cycles 
+ * Allows for the creation of new recruitment cycles 
+ *
+ * @param createOption whether there should be an option to create a new recruitment cycle
+ * @param recruitmentCycles array of recruitment cycles to display
+ * @param className style classes to apply to the combo box
+ * @param selectedCycle the pre-selected recruitment cycle (normally the first one)
+ */
 export default function RecruitmentCycleCombobox({
     createOption,
     recruitmentCycles,

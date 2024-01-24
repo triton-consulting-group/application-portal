@@ -8,6 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getValidator } from "~/lib/validate-question";
 
+/**
+ * Dialog for previewing an application form.
+ * Nothing happens on submit and this makes no mutations or queries
+ *
+ * @param questions the questions to display
+ */
 export function PreviewApplication({
     questions
 }: {

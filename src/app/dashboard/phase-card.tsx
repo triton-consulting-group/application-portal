@@ -13,12 +13,19 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import type { RecruitmentCyclePhase } from "../types";
 
+/**
+ * Card that displays a recruitment cycle's phases.
+ * Allows for phases to be reordered, deleted, created, and edited
+ * Uses dnd-kit for phase reordering
+ *
+ * Practically the same component as as QuestionCard
+ */
 export default function PhaseCard() {
     const [recruitmentCycle] = useAtom(selectedRecruitmentCycleAtom);
     const [editing, setEditing] = useState<boolean>(false);
 
     const utils = api.useContext();
-    const getRecruitmentCyclePhaseQuery = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle);
+    const { data: phases } = api.recruitmentCyclePhase.getByCycleId.useQuery(recruitmentCycle);
     const reorderPhases = api.recruitmentCyclePhase.reorder.useMutation({
         onMutate: async (orderedIds) => {
             // cancel outgoing refetches that will overwrite data
@@ -61,7 +68,7 @@ export default function PhaseCard() {
     const sensors = useSensors(useSensor(PointerSensor));
     const handleDragEnd = (e: DragEndEvent) => {
         const { active, over } = e;
-        const phases = getRecruitmentCyclePhaseQuery.data ?? [];
+        if (!phases) return;
         if (over && active.id !== over.id) {
             const activeIdx = phases.findIndex(q => q.id === active.id);
             const overIdx = phases.findIndex(q => q.id === over.id);
@@ -146,23 +153,18 @@ export default function PhaseCard() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col flex-grow gap-y-2 divide-y">
-                {getRecruitmentCyclePhaseQuery.isLoading ?
-                    <div></div> :
-                    <>
-                        {!recruitmentCycle && "Select a recruitment cycle first"}
-                        {recruitmentCycle && !getRecruitmentCyclePhaseQuery.data?.length && "No phases have been created"}
-                        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                            <SortableContext
-                                strategy={verticalListSortingStrategy}
-                                items={(getRecruitmentCyclePhaseQuery.data ?? []).map(p => p.id)}
-                            >
-                                {(getRecruitmentCyclePhaseQuery.data ?? []).map(p => (
-                                    <SortablePhase p={p} key={p.id}></SortablePhase>
-                                ))}
-                            </SortableContext>
-                        </DndContext>
-                    </>
-                }
+                {!recruitmentCycle && "Select a recruitment cycle first"}
+                {recruitmentCycle && !phases?.length && "No phases have been created"}
+                <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                    <SortableContext
+                        strategy={verticalListSortingStrategy}
+                        items={(phases ?? []).map(p => p.id)}
+                    >
+                        {(phases ?? []).map(p => (
+                            <SortablePhase p={p} key={p.id}></SortablePhase>
+                        ))}
+                    </SortableContext>
+                </DndContext>
             </CardContent>
             <CardFooter className="flex flex-wrap gap-y-4">
                 <CreatePhase></CreatePhase>

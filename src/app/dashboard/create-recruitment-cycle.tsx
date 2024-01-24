@@ -10,6 +10,11 @@ import { api } from "~/trpc/react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { useState } from "react";
 
+/**
+ * Dialog for creating a new recruitment cycle
+ *
+ * TODO: add functionality for editing a recruitment cycle
+ */
 export default function CreateRecruitmentCycle() {
     const [open, setOpen] = useState<boolean>(false);
 

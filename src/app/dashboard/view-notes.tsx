@@ -7,6 +7,14 @@ import { ChevronsUpDown, Loader2, Pencil, Trash2, X } from "lucide-react";
 import CreateNote from "./create-note";
 import { getSession } from "next-auth/react";
 
+/**
+ * Dialog for viewing, creating, deleting, and updating notes attached to an application
+ * Only the author of note is able to modify it in any way
+ *
+ * @param applicationId the id of the application whose notes are being viewed 
+ * @param children specify a custom DialogTrigger if needed
+ * @param asChild whether to use the children as the DialogTrigger
+ */
 const ViewNotes = forwardRef(function ViewNotes({
     applicationId,
     children,
@@ -21,6 +29,16 @@ const ViewNotes = forwardRef(function ViewNotes({
     const [editing, setEditing] = useState<boolean>(false);
     const [userId, setUserId] = useState<string>("");
     const [open, setOpen] = useState<boolean>(false);
+
+    const fetchUserId = async () => {
+        setUserId((await getSession())?.user.id ?? "");
+    };
+
+    // fetch the user id on mount
+    useEffect(() => {
+        void fetchUserId();
+    }, []);
+
     const utils = api.useContext();
     const getNotesQuery = api.applicationNote.getByApplicationId.useQuery(applicationId, { enabled: open });
     const deleteNoteMutation = api.applicationNote.delete.useMutation({
@@ -42,14 +60,6 @@ const ViewNotes = forwardRef(function ViewNotes({
             utils.applicationNote.getByApplicationId.setData(applicationId, context?.previousNotes);
         },
     });
-
-    const fetchUserId = async () => {
-        setUserId((await getSession())?.user.id ?? "");
-    };
-
-    useEffect(() => {
-        void fetchUserId();
-    }, []);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

@@ -14,6 +14,16 @@ import { getSession } from "next-auth/react";
 
 const noteSchema = createInsertSchema(applicationNotes, { authorId: z.string().optional() });
 
+/**
+ * Dialog for creating a note
+ *
+ * @param applicationId the id of the application to create a note for
+ * @param existingNote specify this to make the dialog edit a pre-existing note instead of making
+ * a new one
+ * @param children the node children to use as a DialogTrigger
+ * @param asChild whether children are specified to use as a DialogTrigger
+ * @param disabled whether the button should be disabled
+ */
 export default function CreateNote({
     applicationId,
     existingNote,
@@ -41,7 +51,6 @@ export default function CreateNote({
     useEffect(() => form.reset(existingNote), [existingNote, form]);
 
     const utils = api.useContext();
-
     const createNoteMutation = api.applicationNote.create.useMutation({
         onMutate: async (newNote) => {
             // cancel outgoing refetches that will overwrite data
