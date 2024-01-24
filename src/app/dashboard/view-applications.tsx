@@ -34,13 +34,16 @@ const filterApplicationsByNameOrEmail = (
     return applications.filter(a => a[field]?.toLowerCase().includes(value.toLowerCase())) ?? [];
 };
 
+/**
+ * Parent component to ApplicationTable and ApplicationBoard. Handles the mutation,
+ * data fetching, and filtering of applications 
+ */
 export default function ViewApplications() {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
-    const [searchQuery, setSearchQuery] = useState<string>("");
 
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const [filters, setFilters] = useState<Filter[]>([]);
     const createFilterForm = useForm<Filter>();
-
     const onFilterFormSave = () => {
         setFilters([createFilterForm.getValues(), ...filters]);
         createFilterForm.reset();
@@ -274,7 +277,7 @@ export default function ViewApplications() {
                     </TabsContent>
                     <TabsContent value="board">
                         <ApplicationBoard
-                            displayedApplications={applicationsData!}
+                            applications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}

@@ -11,7 +11,14 @@ import { FieldType } from "~/server/db/types";
 import FileViewerDialog from "~/components/ui/file-viewer-dialog";
 import type { api } from "~/trpc/react";
 
-
+/**
+ * Displays ApplicationWithResponses[] in a table
+ *
+ * @param displayedApplications the applications to display
+ * @param questions the recruitment cycle questions. used as column headers
+ * @param phases the recruitment cycle phases. used to display the phase name in each row
+ * @param setApplicationPhaseIdMutation the mutation needed to update the phase of an application
+ */
 export default function ApplicationTable({
     displayedApplications,
     questions,
@@ -23,12 +30,6 @@ export default function ApplicationTable({
     phases: RecruitmentCyclePhase[],
     setApplicationPhaseIdMutation: ReturnType<typeof api.application.updatePhase.useMutation>
 }) {
-    const setApplicationPhase = (applicationId: string, phaseId: string) => {
-        const updatedApplication = displayedApplications.find(a => a.id === applicationId);
-        if (!updatedApplication) throw new Error("Application not found");
-        void setApplicationPhaseIdMutation.mutateAsync({ applicationId: applicationId, phaseId: phaseId });
-    };
-
     return (
         <div className="w-full h-[600px] overflow-auto">
             <Table>
@@ -79,7 +80,7 @@ export default function ApplicationTable({
                                                     {phases.map(p => (
                                                         <DropdownMenuItem
                                                             key={p.id}
-                                                            onClick={() => setApplicationPhase(app.id, p.id)}
+                                                            onClick={() => setApplicationPhaseIdMutation.mutateAsync({ applicationId: app.id, phaseId: p.id })}
                                                             className="cursor-pointer"
                                                         >
                                                             {

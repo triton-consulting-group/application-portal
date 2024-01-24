@@ -17,6 +17,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtom } from "jotai";
 import { selectedRecruitmentCycleAtom } from "./atoms";
 
+/**
+ * The individual application item that can be dragged and dropped into the PhaseCard SortableContext
+ *
+ * @param application the application to display
+ * @param disabled this flag is used to change the appearance of the item if it is being
+ * used in the DragOverlay.
+ * @param questions the questions to pass to ApplicationDisplayDialog
+ */
 function SortableApplication({
     application,
     disabled,
@@ -102,36 +110,51 @@ function SortableApplication({
     );
 }
 
+/**
+ * Card component that displays all the applications in the given specified phase.
+ * Implements a sortable context for applications to be dropped into.
+ * The applications in the card are in a virtualized list to reduce performance issues
+ * with large numbers of applications.
+ *
+ * @param applications all the available applications. the component will filter them
+ * to choose which ones get displayed.
+ * @param phase the phase this card represents. a null value represents the uncategorized applications
+ * @param questions the recruitment cycle questions. Eventually passed to ApplicationDisplayDialog
+ */
 function PhaseCard({
-    displayedApplications,
+    applications,
     phase,
     questions,
 }: {
-    displayedApplications: ApplicationWithResponses[],
+    applications: ApplicationWithResponses[],
     phase: RecruitmentCyclePhase | null,
     questions: ApplicationQuestion[],
 }) {
-    const [applications, setApplications] = useState<ApplicationWithResponses[]>([]);
+    const [displayedApplications, setDisplayedApplications] = useState<ApplicationWithResponses[]>([]);
     const { setNodeRef } = useSortable({ id: phase?.id ?? "null", data: { type: "container" } });
     const virtualRef = useRef<HTMLDivElement>(null);
     const virtualizer = useVirtualizer({
-        count: applications.length,
+        count: displayedApplications.length,
         getScrollElement: () => virtualRef.current,
+        // the height of each SortableApplication in px
         estimateSize: () => 64,
     });
 
-    const copyEmails = () => navigator.clipboard.writeText(applications.map(a => a.email).join(","));
-    const copyNames = () => navigator.clipboard.writeText(applications.map(a => a.name).join(","));
+    const copyEmails = () => navigator.clipboard.writeText(displayedApplications.map(a => a.email).join(","));
+    const copyNames = () => navigator.clipboard.writeText(displayedApplications.map(a => a.name).join(","));
 
+    /**
+     * Get the list of applications to display from applications and set displayedApplications
+     */
     useEffect(() => {
-        setApplications(displayedApplications.filter(a => a.phaseId === (phase?.id ?? null)));
+        setDisplayedApplications(applications.filter(a => a.phaseId === (phase?.id ?? null)));
     }, [displayedApplications, phase]);
 
     return (
         <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] flex flex-col">
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                    {phase ? phase.displayName : "Uncategorized"} {`(${applications.length})`}
+                    {phase ? phase.displayName : "Uncategorized"} {`(${displayedApplications.length})`}
                     <div className="flex">
                         <TooltipProvider delayDuration={100}>
                             <Tooltip>
@@ -172,7 +195,7 @@ function PhaseCard({
             <CardContent className="grow">
                 <SortableContext
                     strategy={verticalListSortingStrategy}
-                    items={applications.map(a => a.id)}
+                    items={displayedApplications.map(a => a.id)}
                 >
                     <div ref={setNodeRef}>
                         <div ref={virtualRef} className="h-[300px] overflow-auto">
@@ -184,7 +207,7 @@ function PhaseCard({
                                     position: "relative"
                                 }}
                             >
-                                {applications.length === 0 &&
+                                {displayedApplications.length === 0 &&
                                     <div>
                                         No applications are in this phase yet.
                                     </div>
@@ -202,7 +225,7 @@ function PhaseCard({
                                         }}
                                     >
                                         <SortableApplication
-                                            application={applications[virtualRow.index]!}
+                                            application={displayedApplications[virtualRow.index]!}
                                             questions={questions}
                                         />
                                     </div>
@@ -216,47 +239,72 @@ function PhaseCard({
     );
 }
 
+/**
+ * Displays ApplicationWithResponses[] in a trello board view with cards. There is a board for each
+ * recruitment cycle phase + a default card for applications where phase is null.
+ * There is drag and drop functionality with dnd-kit for dragging applications between phase cards.
+ *
+ * @param applications the applications to display
+ * @param questions the recruitment cycle questions. Eventually passed to ApplicationDisplayDialog
+ * @param phases the recruitment cycle phases. Each phase gets its own card
+ * @param setApplicationPhaseIdMutation the mutation needed to update the phase of an application
+ */
 export default function ApplicationBoard({
-    displayedApplications,
+    applications,
     questions,
     phases,
     setApplicationPhaseIdMutation
 }: {
-    displayedApplications: ApplicationWithResponses[],
+    applications: ApplicationWithResponses[],
     questions: ApplicationQuestion[],
     phases: RecruitmentCyclePhase[],
     setApplicationPhaseIdMutation: ReturnType<typeof api.application.updatePhase.useMutation>
 }) {
     const [cycleId] = useAtom(selectedRecruitmentCycleAtom);
-    const sensors = useSensors(useSensor(PointerSensor));
+    // the current actively dragged application. null when no actively dragging application
+    // used to determine whether to display DragOverlay
     const [active, setActive] = useState<ApplicationWithResponses | null>(null);
+    const sensors = useSensors(useSensor(PointerSensor));
+
     const utils = api.useContext();
-    
+
+    /**
+     * Triggers when the actively dragged application gets dropped (DragEndEvent)
+     * Commits the phase update to the server. 
+     */
     const handleDragEnd = ({ active }: { active: DragEndEvent['active'] }) => {
         setActive(null);
         // handle drag over already set the phase id, so now just commit the change 
-        const application = displayedApplications.find(a => a.id === active.id);
+        const application = applications.find(a => a.id === active.id);
         if (!application) throw new Error("Dragged application not found");
         void setApplicationPhaseIdMutation.mutateAsync(
             { applicationId: application.id, phaseId: application.phaseId }
         );
     };
 
+    /**
+     * Triggers when an application starts to get dragged. 
+     * Just sets the active application as 
+     */
     const handleDragStart = ({ active }: { active: DragStartEvent["active"] }) => {
-        const activeApplication = displayedApplications.find(a => a.id === active.id);
-        if (!activeApplication) throw new Error("Active application not found");
-        setActive(activeApplication);
+        setActive(applications.find(a => a.id === active.id)!);
     };
 
+    /**
+     * Triggers when the actively dragged application drags over either another application
+     * or a phase card. Updates the query data from getSubmittedApplicationsWithResponsesByCycleId
+     * with the active applications new phase. 
+     */
     const handleDragOver = ({ active, over }: { active: DragOverEvent['active'], over: DragOverEvent['over'] }) => {
         if (!over) return;
         if (over.id === active.id) return;
 
         // over.id can be an app or phase id, this finds the phase no matter what
-        const overApp = displayedApplications.find(a => a.id === over.id);
+        const overApp = applications.find(a => a.id === over.id);
         const phaseId = (overApp ? phases.find(p => p.id === overApp.phaseId) : phases.find(p => p.id === over.id))?.id ?? null;
 
         const previousApplications = utils.application.getSubmittedApplicationsWithResponsesByCycleId.getData(cycleId)!;
+        // in order for react query to trigger a state change, need to create a brand new ApplicationWithResponses array 
         const updatedApplications = [...previousApplications];
         const updatedApplicationIndex = updatedApplications.findIndex(a => a.id === active.id);
         updatedApplications[updatedApplicationIndex] = {
@@ -278,14 +326,14 @@ export default function ApplicationBoard({
                 onDragOver={handleDragOver}
             >
                 <PhaseCard
-                    displayedApplications={displayedApplications}
+                    applications={applications}
                     phase={null}
                     questions={questions}
                 />
                 {phases.map(phase => (
                     <PhaseCard
                         key={phase.id}
-                        displayedApplications={displayedApplications}
+                        applications={applications}
                         phase={phase}
                         questions={questions}
                     />
