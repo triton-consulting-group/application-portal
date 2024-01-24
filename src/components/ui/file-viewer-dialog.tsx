@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import { Eye, Loader2 } from "lucide-react";
 import { api } from "~/trpc/react";
 
+/**
+ * Dialog for viewing the desired file. Only works for .pdf or .png/jpg files
+ * @param src either a File object or a string specifying the s3 bucket key to find the file at
+ */
 export default function FileViewerDialog({ src }: { src: File | string }) {
     const [fileValue, setFileValue] = useState<string | null>(null);
     const [fileType, setFileType] = useState<"pdf" | "image" | null>(null);
@@ -12,6 +16,11 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
     const [open, setOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
 
+    /**
+     * Fetch the file every time the dialog is opened (s3 presigned URL may expire)
+     *
+     * TODO: maybe replace with react-query functionality if possible
+     */
     useEffect(() => {
         const getUrl = async () => {
             setLoading(true);
@@ -53,7 +62,8 @@ export default function FileViewerDialog({ src }: { src: File | string }) {
                                         {fileType === "pdf" ? (
                                             <iframe className="w-full h-full" src={fileValue!}></iframe>
                                         ) : (
-                                            <img className="max-h-[600px]" src={fileValue!} />
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img alt="User uploaded file" className="max-h-[600px]" src={fileValue!} />
                                         )}
                                     </>
                                 }

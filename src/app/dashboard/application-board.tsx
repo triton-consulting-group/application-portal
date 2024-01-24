@@ -148,7 +148,7 @@ function PhaseCard({
      */
     useEffect(() => {
         setDisplayedApplications(applications.filter(a => a.phaseId === (phase?.id ?? null)));
-    }, [displayedApplications, phase]);
+    }, [applications, phase]);
 
     return (
         <Card className="grow max-h-[28rem] min-w-[28rem] min-h-[28rem] flex flex-col">
