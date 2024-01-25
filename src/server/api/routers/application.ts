@@ -9,6 +9,7 @@ import type { ApplicationWithResponses } from "~/app/types";
 
 const client = new SESClient();
 const EMAIL_TEMPLATE_NAME = "confirmation_template";
+const EMAIL_ADDRESS = "no-reply@ucsdtcg.org";
 
 export const applicationRouter = createTRPCRouter({
     getUserApplicationByCycleId: applicantProcedure
@@ -160,7 +161,7 @@ export const applicationRouter = createTRPCRouter({
             const res = await ctx.db.update(applications).set({ submitted: true }).where(eq(applications.id, input));
             if (ctx.session.user.email) {
                 void client.send(new SendTemplatedEmailCommand({
-                    Source: "no-reply@ucsdtcg.org",
+                    Source: EMAIL_ADDRESS,
                     Destination: {
                         ToAddresses: [ctx.session.user.email]
                     },
