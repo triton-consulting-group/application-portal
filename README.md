@@ -68,14 +68,14 @@ file and also update the `BUCKET_NAME` variable in
 #### Conclusion
 The application should now be fully deployed! Good luck with recruitment :)
 
-## Features 
-### Applicants
-
-### Members
-
-### Admins
-
 ## Contributing
-
 ### Configuring a Development Environment
+This project runs on Node version 20. Once you have Node v20 installed,
+install all required dependencies by running `npm install`.
+
+Also make sure to configure all required environment variables 
+in a `.env` file. You can view `.env.example` for an example environment
+file.
+
+Once everything is configured, run the project with `npm run start`
 
