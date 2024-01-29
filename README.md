@@ -77,5 +77,5 @@ Also make sure to configure all required environment variables
 in a `.env` file. You can view `.env.example` for an example environment
 file.
 
-Once everything is configured, run the project with `npm run start`
+Once everything is configured, run the project with `npm run dev`
 
