@@ -11,7 +11,7 @@ import { db } from "~/server/db";
 import { sqliteTable, sessions, users } from "~/server/db/schema";
 import { Role } from "./db/types";
 import type { User } from "~/app/types";
-import { Adapter } from "next-auth/adapters";
+import type { Adapter } from "next-auth/adapters";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
