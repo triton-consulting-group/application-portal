@@ -120,7 +120,7 @@ export const applicationResponseRouter = createTRPCRouter({
 
             return ctx.db
                 .insert(applicationResponses)
-                .values(input)
+                .values(input);
         }),
     getS3UploadUrl: applicantProcedure
         .input(z.string())
