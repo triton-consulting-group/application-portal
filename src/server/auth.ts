@@ -8,9 +8,10 @@ import {
 import GoogleProvider from "next-auth/providers/google";
 import { env } from "~/env.mjs";
 import { db } from "~/server/db";
-import { mysqlTable, sessions, users } from "~/server/db/schema";
+import { sqliteTable, sessions, users } from "~/server/db/schema";
 import { Role } from "./db/types";
 import type { User } from "~/app/types";
+import type { Adapter } from "next-auth/adapters";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -56,7 +57,7 @@ export const authOptions: NextAuthOptions = {
         }),
     },
     adapter: {
-        ...DrizzleAdapter(db, mysqlTable),
+        ...DrizzleAdapter(db, sqliteTable) as Adapter,
         async createUser(data) {
             const id = crypto.randomUUID();
 

@@ -91,7 +91,7 @@ export const applicationResponseRouter = createTRPCRouter({
 
             if (application.submitted) {
                 throw new TRPCError({
-                    message: "Can't update response when the assosciated application is submitted",
+                    message: "Can't update response when the associated application is submitted",
                     code: "BAD_REQUEST"
                 });
             }
@@ -120,8 +120,7 @@ export const applicationResponseRouter = createTRPCRouter({
 
             return ctx.db
                 .insert(applicationResponses)
-                .values(input)
-                .onDuplicateKeyUpdate({ set: { value: input.value } });
+                .values(input);
         }),
     getS3UploadUrl: applicantProcedure
         .input(z.string())
