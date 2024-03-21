@@ -9,7 +9,7 @@ As a result, it is built on [NextJS](https://nextjs.org/), [DrizzleORM](https://
 [TailwindCSS](https://tailwindcss.com/), [tRPC](https://trpc.io/), and 
 [NextAuth](https://next-auth.js.org/). It also uses [shadcn](https://ui.shadcn.com/) as for components. 
 
-The code and database utilizes Google OAuth and MySQL ([Planetscale](https://planetscale.com/))
+The code and database utilizes Google OAuth and libSQL ([Turso](https://turso.tech/))
 for authentication and data storage. 
 
 ## Want to repurpose this for your own organization? Read here
@@ -34,11 +34,11 @@ Make sure to add all the environment variables specified in `.env.example`
 to your Vercel project.
 
 #### Database
-The project is set up around Planetscale, so once again, unless you 
-expect to exceed [Planetscale's free tier](https://planetscale.com/pricing),
-I'd recommend using Planetscale for the DB. 
+The project is set up around Turso, so once again, unless you 
+expect to exceed [Turso's free tier](https://turso.tech/pricing),
+I'd recommend using Turso for the DB. 
 
-Once the Planetscale DB is setup, push the DB schema to the database
+Once the Turso DB is setup, push the DB schema to the database
 by running `npm run db:push`. 
 
 #### AWS Configuration
