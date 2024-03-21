@@ -20,7 +20,7 @@ export const recruitmentCycleRouter = createTRPCRouter({
                 .select()
                 .from(recruitmentCycles)
                 .where(
-                    sql`${recruitmentCycles.startTime} <= UTC_TIMESTAMP() AND ${recruitmentCycles.endTime} >= UTC_TIMESTAMP()`
+                    sql`${recruitmentCycles.startTime} <= UNIXEPOCH() AND ${recruitmentCycles.endTime} >= UNIXEPOCH()`
                 )
                 .limit(1);
             return cycle;
