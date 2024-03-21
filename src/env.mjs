@@ -11,8 +11,14 @@ export const env = createEnv({
             .string()
             .url()
             .refine(
-                (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
+                (str) => !str.includes("YOUR_TURSO_URL_HERE"),
                 "You forgot to change the default URL"
+            ),
+        DATABASE_AUTH_TOKEN: z
+            .string()
+            .refine(
+                (str) => !str.includes("YOUR_TURSO_AUTH_TOKEN_HERE"),
+                "You forgot to change the default auth token"
             ),
         NODE_ENV: z
             .enum(["development", "test", "production"])
