@@ -58,16 +58,19 @@ export const authOptions: NextAuthOptions = {
     },
     adapter: {
         ...DrizzleAdapter(db, sqliteTable) as Adapter,
+        async createSession(data) {
+            const [session] = await db
+                .insert(sessions)
+                .values(data)
+                .returning();
+            return session!;
+        },
         async createUser(data) {
-            const id = crypto.randomUUID();
-
-            await db.insert(users).values({ ...data, id: id, role: Role.APPLICANT });
-
-            const [createdUser] = await db
-                .select()
-                .from(users)
-                .where(eq(users.id, id));
-            return createdUser as User;
+            const [user] = await db
+                .insert(users)
+                .values({ ...data, id: crypto.randomUUID(), role: Role.APPLICANT })
+                .returning();
+            return user!;
         },
         // https://github.com/nextauthjs/next-auth/pull/8561
         async getSessionAndUser(data) {
