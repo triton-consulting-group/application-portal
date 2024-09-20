@@ -36,16 +36,6 @@ export const applicationRouter = createTRPCRouter({
                 .where(eq(applicationQuestions.cycleId, input))
                 .orderBy(applicationQuestions.order);
             console.timeEnd("questions");
-            console.time("apps");
-            const applicationsWithUser = await ctx.db
-                .select()
-                .from(applications)
-                .where(and(
-                    eq(applications.cycleId, input),
-                    eq(applications.submitted, true)
-                ))
-                .innerJoin(users, eq(users.id, applications.userId));
-            console.timeEnd("apps");
             console.time("responses");
             const responses = await ctx.db
                 .select({
@@ -60,6 +50,16 @@ export const applicationRouter = createTRPCRouter({
                     eq(applications.cycleId, input)
                 ));
             console.timeEnd("responses");
+            console.time("apps");
+            const applicationsWithUser = await ctx.db
+                .select()
+                .from(applications)
+                .where(and(
+                    eq(applications.cycleId, input),
+                    eq(applications.submitted, true)
+                ))
+                .innerJoin(users, eq(users.id, applications.userId));
+            console.timeEnd("apps");
 
             /*const [questions, applicationsWithUser, responses] = await Promise.all([
                 ctx.db
