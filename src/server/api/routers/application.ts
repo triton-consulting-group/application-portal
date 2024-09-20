@@ -29,12 +29,14 @@ export const applicationRouter = createTRPCRouter({
     getSubmittedApplicationsWithResponsesByCycleId: memberProcedure
         .input(z.string())
         .query(async ({ ctx, input }) => {
+            console.time("questions");
             const questions = await ctx.db
                 .select()
                 .from(applicationQuestions)
                 .where(eq(applicationQuestions.cycleId, input))
                 .orderBy(applicationQuestions.order);
-            console.log("done questions");
+            console.timeEnd("questions");
+            console.time("apps");
             const applicationsWithUser = await ctx.db
                 .select()
                 .from(applications)
@@ -43,7 +45,8 @@ export const applicationRouter = createTRPCRouter({
                     eq(applications.submitted, true)
                 ))
                 .leftJoin(users, eq(users.id, applications.userId));
-            console.log("done apps");
+            console.timeEnd("apps");
+            console.time("responses");
             const responses = await ctx.db
                 .select({
                     id: applicationResponses.id,
@@ -56,7 +59,7 @@ export const applicationRouter = createTRPCRouter({
                     eq(applications.id, applicationResponses.applicationId),
                     eq(applications.cycleId, input)
                 ));
-            console.log("done responses");
+            console.timeEnd("responses");
 
             /*const [questions, applicationsWithUser, responses] = await Promise.all([
                 ctx.db
