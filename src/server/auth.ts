@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
         }),
     },
     adapter: {
-        ...DrizzleAdapter(db, sqliteTable) as Adapter,
+        ...DrizzleAdapter(db) as Adapter,
         async createSession(data) {
             const [session] = await db
                 .insert(sessions)
