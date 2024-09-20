@@ -44,7 +44,7 @@ export const applicationRouter = createTRPCRouter({
                     eq(applications.cycleId, input),
                     eq(applications.submitted, true)
                 ))
-                .leftJoin(users, eq(users.id, applications.userId));
+                .innerJoin(users, eq(users.id, applications.userId));
             console.timeEnd("apps");
             console.time("responses");
             const responses = await ctx.db
@@ -55,7 +55,7 @@ export const applicationRouter = createTRPCRouter({
                     applicationId: applicationResponses.applicationId
                 })
                 .from(applicationResponses)
-                .leftJoin(applications, and(
+                .innerJoin(applications, and(
                     eq(applications.id, applicationResponses.applicationId),
                     eq(applications.cycleId, input)
                 ));
