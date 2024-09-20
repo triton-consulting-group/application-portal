@@ -272,7 +272,8 @@ export default function ViewApplications() {
                     </div>
                     <TabsContent value="table">
                         <ApplicationTable
-                            displayedApplications={applicationsData!}
+                            //displayedApplications={applicationsData!}
+                            displayedApplications={applicationsData}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
@@ -280,7 +281,8 @@ export default function ViewApplications() {
                     </TabsContent>
                     <TabsContent value="board">
                         <ApplicationBoard
-                            applications={applicationsData!}
+                            //applications={applicationsData!}
+                            applications={applicationsData}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
