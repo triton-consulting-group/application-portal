@@ -51,7 +51,7 @@ export default function ViewApplications() {
     const removeFilter = (filter: Filter) => setFilters(filters.filter(f => f !== filter));
 
     const { data: questionsData, isLoading: questionsLoading } = api.applicationQuestion.getByCycle.useQuery(cycleId);
-    /*const { data: applicationsData, isLoading: applicationsLoading } = api.application.getSubmittedApplicationsWithResponsesByCycleId.useQuery(cycleId, {
+    const { data: applicationsData, isLoading: applicationsLoading } = api.application.getSubmittedApplicationsWithResponsesByCycleId.useQuery(cycleId, {
         select: data =>
             filterApplicationsByNameOrEmail(data, "name", searchQuery)
                 .filter(a =>
@@ -63,9 +63,7 @@ export default function ViewApplications() {
                         if (f.type === FilterType.CONTAIN) return response.value.trim().toLowerCase().includes(f.value.toLowerCase());
                     })
                 )
-    });*/
-    const applicationsData: ApplicationWithResponses[] = [];
-    const applicationsLoading = false;
+    });
 
     const { data: phasesData, isLoading: phasesLoading } = api.recruitmentCyclePhase.getByCycleId.useQuery(cycleId);
 
@@ -272,8 +270,7 @@ export default function ViewApplications() {
                     </div>
                     <TabsContent value="table">
                         <ApplicationTable
-                            //displayedApplications={applicationsData!}
-                            displayedApplications={applicationsData}
+                            displayedApplications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
@@ -281,8 +278,7 @@ export default function ViewApplications() {
                     </TabsContent>
                     <TabsContent value="board">
                         <ApplicationBoard
-                            //applications={applicationsData!}
-                            applications={applicationsData}
+                            applications={applicationsData!}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}

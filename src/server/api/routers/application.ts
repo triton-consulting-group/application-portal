@@ -29,7 +29,36 @@ export const applicationRouter = createTRPCRouter({
     getSubmittedApplicationsWithResponsesByCycleId: memberProcedure
         .input(z.string())
         .query(async ({ ctx, input }) => {
-            const [questions, applicationsWithUser, responses] = await Promise.all([
+            const questions = await ctx.db
+                .select()
+                .from(applicationQuestions)
+                .where(eq(applicationQuestions.cycleId, input))
+                .orderBy(applicationQuestions.order);
+            console.log("done questions");
+            const applicationsWithUser = await ctx.db
+                .select()
+                .from(applications)
+                .where(and(
+                    eq(applications.cycleId, input),
+                    eq(applications.submitted, true)
+                ))
+                .leftJoin(users, eq(users.id, applications.userId));
+            console.log("done apps");
+            const responses = await ctx.db
+                .select({
+                    id: applicationResponses.id,
+                    questionId: applicationResponses.questionId,
+                    value: applicationResponses.value,
+                    applicationId: applicationResponses.applicationId
+                })
+                .from(applicationResponses)
+                .leftJoin(applications, and(
+                    eq(applications.id, applicationResponses.applicationId),
+                    eq(applications.cycleId, input)
+                ));
+            console.log("done responses");
+
+            /*const [questions, applicationsWithUser, responses] = await Promise.all([
                 ctx.db
                     .select()
                     .from(applicationQuestions)
@@ -55,7 +84,7 @@ export const applicationRouter = createTRPCRouter({
                         eq(applications.id, applicationResponses.applicationId),
                         eq(applications.cycleId, input)
                     ))
-            ]);
+            ]);*/
 
             return applicationsWithUser.map((app): ApplicationWithResponses => ({
                 ...app.application,
