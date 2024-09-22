@@ -64,6 +64,7 @@ export default function ViewApplications() {
                     })
                 )
     });
+
     //const applicationsData: ApplicationWithResponses[] = [];
     //const applicationsLoading = false;
 
@@ -273,7 +274,7 @@ export default function ViewApplications() {
                     <TabsContent value="table">
                         <ApplicationTable
                             //displayedApplications={applicationsData!}
-                            displayedApplications={applicationsData}
+                            displayedApplications={applicationsData ?? []}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
@@ -282,7 +283,7 @@ export default function ViewApplications() {
                     <TabsContent value="board">
                         <ApplicationBoard
                             //applications={applicationsData!}
-                            applications={applicationsData}
+                            applications={applicationsData ?? []}
                             questions={questionsData ?? []}
                             phases={phasesData ?? []}
                             setApplicationPhaseIdMutation={setApplicationPhaseIdMutation}
