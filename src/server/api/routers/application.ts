@@ -36,7 +36,7 @@ export const applicationRouter = createTRPCRouter({
                 .where(eq(applicationQuestions.cycleId, input))
                 .orderBy(applicationQuestions.order);
             console.timeEnd("questions");
-            console.log("questions: ", questions);
+            console.log("questions: ", questions )
             console.time("responses");
             const responses = await ctx.db
                 .select({
@@ -52,7 +52,7 @@ export const applicationRouter = createTRPCRouter({
                 ))
                 .limit(10);
             console.timeEnd("responses");
-            console.log("responses: ", responses);
+            console.log("responses: ", responses)
             console.time("apps");
             const applicationsWithUser = await ctx.db
                 .select()
